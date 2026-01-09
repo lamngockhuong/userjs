@@ -13,6 +13,7 @@ A personal userscript hosting platform built with Vue 3 and Vite.
 - Syntax-highlighted code preview with Shiki
 - External bookmarks collection
 - Dark mode support
+- Dynamic page titles per route
 - Keyboard shortcuts (/, Shift+G, Shift+B, Shift+D)
 
 ## Tech Stack

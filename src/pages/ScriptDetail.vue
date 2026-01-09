@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { onMounted, ref, computed } from 'vue'
+import { onMounted, ref, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useScripts } from '@/composables/useScripts'
+import { BASE_TITLE } from '@/router'
 import { Download, ExternalLink, ArrowLeft, History, Code, Copy, Check } from 'lucide-vue-next'
 import { codeToHtml } from 'shiki'
 
@@ -54,6 +55,11 @@ const script = computed(() => {
   if (!category.value || !filename.value) return undefined
   return getBySlug(category.value, filename.value)
 })
+
+// Update page title when script loads
+watch(script, (s) => {
+  document.title = s ? `${s.name} - ${BASE_TITLE}` : `Script - ${BASE_TITLE}`
+}, { immediate: true })
 
 async function fetchGitHistory() {
   if (!script.value) return

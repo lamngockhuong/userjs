@@ -30,7 +30,7 @@ src/
 │   ├── useSearch.ts       # Fuse.js fuzzy search with debounce
 │   ├── useDarkMode.ts     # Theme toggle with localStorage
 │   ├── useKeyboardShortcuts.ts  # Global keyboard shortcuts
-│   └── useUserscriptManager.ts  # Detect Tampermonkey/Violentmonkey
+│   └── useUserscriptManager.ts  # Banner dismiss state management
 ├── pages/            # Route components
 │   ├── Home.vue, Bookmarks.vue
 │   ├── ScriptDetail.vue, NotFound.vue
@@ -68,9 +68,11 @@ All data fetching and state management uses Vue 3 composables:
 
 Vue Router with hash mode (`/#/path`) for GitHub Pages compatibility:
 
-- `/` - Home (script listing)
-- `/script/:category/:filename` - Script detail with code preview
-- `/bookmarks` - External links collection
+- `/` - Home (script listing) → `UserJS Store | Khuong Dev`
+- `/script/:category/:filename` - Script detail → `{Script Name} - UserJS Store | Khuong Dev`
+- `/bookmarks` - External links → `Bookmarks - UserJS Store | Khuong Dev`
+
+Page titles are managed via `router.afterEach` hook and route meta.
 
 ## Tech Stack
 

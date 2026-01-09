@@ -2,11 +2,11 @@
 import { useUserscriptManager } from '@/composables/useUserscriptManager'
 import { X, Download, ExternalLink } from 'lucide-vue-next'
 
-const { managers, showBanner, dismissBanner } = useUserscriptManager()
+const { managers, showBanner, hideBanner } = useUserscriptManager()
 </script>
 
 <template>
-  <div v-if="showBanner()"
+  <div v-if="showBanner"
        class="bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-800">
     <div class="max-w-6xl mx-auto px-4 py-3">
       <div class="flex items-start gap-3">
@@ -33,7 +33,7 @@ const { managers, showBanner, dismissBanner } = useUserscriptManager()
             </a>
           </div>
         </div>
-        <button @click="dismissBanner"
+        <button @click="hideBanner"
                 class="p-1 rounded hover:bg-amber-200 dark:hover:bg-amber-800 transition-colors cursor-pointer"
                 title="Dismiss"
                 aria-label="Dismiss banner">

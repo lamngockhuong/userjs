@@ -50,6 +50,8 @@ userjs/
 - Responsive Design
 - TypeScript Strict Type Checking
 - Dynamic User Script Indexing
+- Dynamic Page Titles per Route
+  - Format: `{Page} - UserJS Store | Khuong Dev`
 - Keyboard Navigation Shortcuts
   - `/` for Search
   - `Shift+G` to Home

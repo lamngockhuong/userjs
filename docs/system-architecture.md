@@ -32,9 +32,9 @@
   - Provides reactive dark mode state
 
 - `useUserscriptManager`:
-  - Detects userscript manager
-  - Provides install detection logic
-  - Manages userscript-related operations
+  - Manages install banner dismiss state
+  - Persists state in localStorage
+  - Provides `showBanner` computed and `hideBanner` function
 
 ### UI Components
 - `ScriptCard`: Renders individual script details
@@ -44,8 +44,8 @@
   - Enables script/bookmark searching
   - Includes clear button
   - Supports category filtering
-- `Footer`: Application footer
-- `InstallBanner`: Userscript manager installation prompt
+- `Footer`: Application footer with brand, links, divider, and copyright
+- `InstallBanner`: Userscript manager installation prompt (dismiss via X button)
 - `ErrorBoundary`: Handles search operation errors
 
 ### Pages
@@ -68,6 +68,8 @@
 
 ## Routing
 - Vue Router for client-side navigation
+- Dynamic page titles via `router.afterEach` hook and route meta
+- Title format: `{Page} - UserJS Store | Khuong Dev`
 - Keyboard shortcuts:
   - `/`: Trigger search
   - `Shift+G`: Navigate to Home

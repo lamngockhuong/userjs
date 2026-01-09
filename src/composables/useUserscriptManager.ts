@@ -1,9 +1,11 @@
-import { ref, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 
 export interface UserscriptManager {
   name: string
   installUrl: string
 }
+
+const STORAGE_KEY = 'usm-banner-hidden'
 
 const managers: UserscriptManager[] = [
   { name: 'Tampermonkey', installUrl: 'https://www.tampermonkey.net/' },
@@ -11,34 +13,36 @@ const managers: UserscriptManager[] = [
   { name: 'Greasemonkey', installUrl: 'https://www.greasespot.net/' }
 ]
 
-const dismissed = ref(false)
+// Read initial state from localStorage immediately (SSR-safe)
+function getInitialState(): boolean {
+  if (typeof window === 'undefined') return false
+  try {
+    return localStorage.getItem(STORAGE_KEY) === 'true'
+  } catch {
+    return false
+  }
+}
+
+const bannerHidden = ref(getInitialState())
+
+// Computed for reactive template binding
+const showBanner = computed(() => !bannerHidden.value)
+
+/**
+ * Hide banner permanently.
+ * Call this when user dismisses banner OR clicks install on any script.
+ */
+function hideBanner() {
+  bannerHidden.value = true
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(STORAGE_KEY, 'true')
+    } catch {
+      // localStorage quota exceeded or unavailable
+    }
+  }
+}
 
 export function useUserscriptManager() {
-  onMounted(() => {
-    // SSR-safe localStorage access
-    if (typeof window !== 'undefined') {
-      try {
-        dismissed.value = localStorage.getItem('usm-banner-dismissed') === 'true'
-      } catch {
-        // localStorage unavailable
-      }
-    }
-  })
-
-  function dismissBanner() {
-    dismissed.value = true
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem('usm-banner-dismissed', 'true')
-      } catch {
-        // localStorage quota exceeded or unavailable
-      }
-    }
-  }
-
-  function showBanner() {
-    return !dismissed.value
-  }
-
-  return { managers, dismissed, dismissBanner, showBanner }
+  return { managers, bannerHidden, showBanner, hideBanner }
 }
