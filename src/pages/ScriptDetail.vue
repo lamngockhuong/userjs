@@ -128,7 +128,12 @@ async function toggleCodePreview() {
   if (showCode.value && !sourceCode.value && script.value) {
     loadingCode.value = true
     try {
-      const res = await fetch(script.value.installUrl)
+      // Try remote URL first, fallback to local for dev
+      const localUrl = `/scripts/${script.value.category}/${script.value.filename}`
+      let res = await fetch(script.value.installUrl)
+      if (!res.ok) {
+        res = await fetch(localUrl)
+      }
       if (!res.ok) throw new Error('Failed to fetch')
       sourceCode.value = await res.text()
 

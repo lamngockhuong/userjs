@@ -14,17 +14,17 @@
       "sourceUrl": "https://github.com/lamngockhuong/userjs/blob/main/scripts/general/hello-world.user.js"
     },
     {
-      "name": "GitHub GIF Inserter",
+      "name": "GIFHub",
       "version": "1.0.0",
       "description": "Insert GIFs into GitHub comments, PR descriptions, and issue bodies",
       "author": "Lam Ngoc Khuong",
       "category": "github",
-      "filename": "github-gif-inserter.user.js",
+      "filename": "gifhub.user.js",
       "matches": [
         "https://github.com/*"
       ],
-      "installUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/github/github-gif-inserter.user.js",
-      "sourceUrl": "https://github.com/lamngockhuong/userjs/blob/main/scripts/github/github-gif-inserter.user.js"
+      "installUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/github/gifhub.user.js",
+      "sourceUrl": "https://github.com/lamngockhuong/userjs/blob/main/scripts/github/gifhub.user.js"
     }
   ],
   "bookmarks": [

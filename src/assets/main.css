@@ -10,9 +10,23 @@
 /* Dark mode variant */
 @variant dark (&:where(.dark, .dark *));
 
+/* Heartbeat animation */
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  25% { transform: scale(1.2); }
+  50% { transform: scale(1); }
+  75% { transform: scale(1.2); }
+}
+
+.animate-heartbeat {
+  animation: heartbeat 1.5s ease-in-out infinite;
+}
+
 /* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
-  * {
+  *,
+  .animate-heartbeat {
+    animation: none !important;
     transition-duration: 0.01ms !important;
   }
 }
