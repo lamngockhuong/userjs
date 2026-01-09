@@ -11,6 +11,8 @@
 // @connect      *
 // @run-at       document-idle
 // @sandbox      JavaScript
+// @updateURL    https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/github/gifhub.user.js
+// @downloadURL  https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/github/gifhub.user.js
 // ==/UserScript==
 
 (function () {
