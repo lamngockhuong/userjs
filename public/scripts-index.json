@@ -1,0 +1,43 @@
+{
+  "scripts": [
+    {
+      "name": "Hello World",
+      "version": "1.0.0",
+      "description": "A sample userscript that logs a greeting message",
+      "author": "Khuong",
+      "category": "general",
+      "filename": "hello-world.user.js",
+      "matches": [
+        "https://*/*"
+      ],
+      "installUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/general/hello-world.user.js",
+      "sourceUrl": "https://github.com/lamngockhuong/userjs/blob/main/scripts/general/hello-world.user.js"
+    }
+  ],
+  "bookmarks": [
+    {
+      "name": "YouTube Auto HD",
+      "url": "https://greasyfork.org/en/scripts/28282-youtube-auto-hd",
+      "description": "Automatically sets YouTube video quality to highest available",
+      "category": "youtube"
+    },
+    {
+      "name": "YouTube Remove Shorts",
+      "url": "https://greasyfork.org/en/scripts/444513-youtube-remove-shorts",
+      "description": "Removes YouTube Shorts from the interface",
+      "category": "youtube"
+    },
+    {
+      "name": "GitHub Dark",
+      "url": "https://github.com/StylishThemes/GitHub-Dark",
+      "description": "Dark theme for GitHub",
+      "category": "github"
+    },
+    {
+      "name": "Endless Google",
+      "url": "https://openuserjs.org/scripts/tumpio/Endless_Google",
+      "description": "Load more Google search results automatically",
+      "category": "productivity"
+    }
+  ]
+}

@@ -21,12 +21,19 @@ userjs/
 │   └── assets/         # Static Assets
 │       └── main.css
 │
-├── public/             # Public Static Assets
-├── scripts/            # Project Utility Scripts
-├── config/             # Configuration Files
+├── build/             # Build Process Scripts
+│   └── generate-index.ts  # User Script Metadata Generator
 │
-├── index.html          # HTML Entry Point
-└── vite.config.ts      # Vite Build Configuration
+├── public/            # Public Static Assets
+│   └── scripts-index.json  # Generated Script Index
+│
+├── scripts/           # Project Utility Scripts
+│   └── general/       # Sample User Scripts
+│
+├── config/            # Configuration Files
+│
+├── index.html        # HTML Entry Point
+└── vite.config.ts    # Vite Build Configuration
 ```
 
 ## Key Technical Characteristics
@@ -42,12 +49,30 @@ userjs/
 - Error Boundary Implementation
 - Responsive Design
 - TypeScript Strict Type Checking
+- Dynamic User Script Indexing
 
 ## Dependency Highlights
 - @vueuse/core: Utility Composables
 - fuse.js: Fuzzy Search
 - lucide-vue-next: Icon Library
 - shiki: Syntax Highlighting
+- tsx: TypeScript Execution
+
+## Build Scripts
+### generate-index.ts
+- Parses User Script Metadata from `.user.js` files
+- Reads `BOOKMARKS.md` for additional script information
+- Generates `public/scripts-index.json`
+- Security Features:
+  - Path Traversal Protection
+  - URL Encoding
+  - Metadata Size Limit (10KB)
+  - URL Validation
+
+### NPM Scripts
+- `generate-index`: Manually trigger script indexing
+- `predev`: Generates script index before development
+- `prebuild`: Generates script index before production build
 
 ## Configuration Specifics
 - TypeScript: `noUncheckedIndexedAccess` enabled
