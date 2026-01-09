@@ -61,6 +61,19 @@ public/
 4. Metadata parsed from userscript headers automatically
 5. Readme markdown is rendered on script detail page if available
 
+### Adding Bookmarks
+
+Edit `BOOKMARKS.md` with format:
+```markdown
+## Category Name
+
+- [Script Name](https://url) - Description #tag1 #tag2
+```
+
+- Source auto-detected from URL (GreasyFork, OpenUserJS, GitHub, Other)
+- Tags extracted from `#hashtag` in description
+- Run `pnpm generate-index` to update
+
 ### Composables Pattern
 
 All data fetching and state management uses Vue 3 composables:

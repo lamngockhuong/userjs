@@ -58,9 +58,10 @@
   - Renders optional markdown readme if available
   - Provides script metadata
 
-- `Bookmarks`: User's bookmarked scripts page
-  - Manages saved/bookmarked scripts
-  - Supports searching and filtering bookmarks
+- `Bookmarks`: External userscripts collection page
+  - Source badge auto-detection from URL
+  - Tags display and search support
+  - Sort by Category, Name, or Source
 
 - `NotFound`: 404 error page
   - Handles undefined routes

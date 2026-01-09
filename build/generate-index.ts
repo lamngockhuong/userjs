@@ -29,6 +29,8 @@ interface Bookmark {
   url: string
   description: string // Optional - may be empty
   category: string
+  tags?: string[]
+  source: 'greasyfork' | 'openuserjs' | 'github' | 'other'
 }
 
 const REPO_URL = 'https://github.com/lamngockhuong/userjs'
@@ -66,6 +68,21 @@ function isValidUrl(url: string): boolean {
     return true
   } catch {
     return false
+  }
+}
+
+/**
+ * Detects the source platform from URL
+ */
+function detectSource(url: string): Bookmark['source'] {
+  try {
+    const hostname = new URL(url).hostname
+    if (hostname.includes('greasyfork.org')) return 'greasyfork'
+    if (hostname.includes('openuserjs.org')) return 'openuserjs'
+    if (hostname.includes('github.com')) return 'github'
+    return 'other'
+  } catch {
+    return 'other'
   }
 }
 
@@ -152,12 +169,25 @@ function parseBookmarks(content: string): Bookmark[] {
         continue
       }
 
-      bookmarks.push({
+      // Parse description and extract tags (format: description #tag1 #tag2)
+      const rawDescription = linkMatch[3] ?? ''
+      const tagMatches = rawDescription.match(/#[\w-]+/g)
+      const tags = tagMatches?.map(t => t.slice(1)) // Remove # prefix
+      const description = rawDescription.replace(/#[\w-]+/g, '').trim()
+
+      const bookmark: Bookmark = {
         name: linkMatch[1] ?? '',
         url,
-        description: linkMatch[3] ?? '',
+        description,
         category: currentCategory,
-      })
+        source: detectSource(url),
+      }
+
+      if (tags?.length) {
+        bookmark.tags = tags
+      }
+
+      bookmarks.push(bookmark)
     }
   }
 

@@ -70,6 +70,10 @@ userjs/
 - Optional Markdown Documentation per Script
   - Place `.md` file alongside `.user.js` (same name)
   - Rendered on ScriptDetail page if available
+- Enhanced Bookmarks
+  - Source badge auto-detection (GreasyFork, OpenUserJS, GitHub)
+  - Tags support via `#hashtag` format in BOOKMARKS.md
+  - Sort options (Category, Name, Source)
 - GitHub API Integration
   - 1-hour cache TTL
 - Syntax Highlighting with Shiki

@@ -16,4 +16,6 @@ export interface Bookmark {
   url: string
   description: string
   category: string
+  tags?: string[]
+  source?: 'greasyfork' | 'openuserjs' | 'github' | 'other'
 }

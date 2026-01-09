@@ -1,6 +1,19 @@
 {
   "scripts": [
     {
+      "name": "Hello World",
+      "version": "1.0.0",
+      "description": "A sample userscript that logs a greeting message",
+      "author": "Lam Ngoc Khuong",
+      "category": "general",
+      "filename": "hello-world.user.js",
+      "matches": [
+        "https://*/*"
+      ],
+      "installUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/general/hello-world.user.js",
+      "sourceUrl": "https://github.com/lamngockhuong/userjs/blob/main/scripts/general/hello-world.user.js"
+    },
+    {
       "name": "GIFHub",
       "version": "1.1.0",
       "description": "Insert GIFs into GitHub comments, PRs, issues, and discussions",
@@ -13,19 +26,6 @@
       "installUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/github/gifhub.user.js",
       "sourceUrl": "https://github.com/lamngockhuong/userjs/blob/main/scripts/github/gifhub.user.js",
       "readmeUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/github/gifhub.md"
-    },
-    {
-      "name": "Hello World",
-      "version": "1.0.0",
-      "description": "A sample userscript that logs a greeting message",
-      "author": "Lam Ngoc Khuong",
-      "category": "general",
-      "filename": "hello-world.user.js",
-      "matches": [
-        "https://*/*"
-      ],
-      "installUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/general/hello-world.user.js",
-      "sourceUrl": "https://github.com/lamngockhuong/userjs/blob/main/scripts/general/hello-world.user.js"
     }
   ],
   "bookmarks": [
@@ -33,13 +33,23 @@
       "name": "GitHub Dark",
       "url": "https://github.com/StylishThemes/GitHub-Dark",
       "description": "Dark theme for GitHub",
-      "category": "github"
+      "category": "github",
+      "source": "github",
+      "tags": [
+        "theme",
+        "dark-mode"
+      ]
     },
     {
       "name": "Endless Google",
       "url": "https://openuserjs.org/scripts/tumpio/Endless_Google",
       "description": "Load more Google search results automatically",
-      "category": "productivity"
+      "category": "productivity",
+      "source": "openuserjs",
+      "tags": [
+        "search",
+        "infinite-scroll"
+      ]
     }
   ]
 }
