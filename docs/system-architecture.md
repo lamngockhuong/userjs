@@ -9,15 +9,22 @@
 ## Component Architecture
 
 ### Composables
-- `useScripts`: 
+- `useScripts`:
   - Manages script data retrieval
   - Handles error states
   - Provides reactive script list
 
-- `useBookmarks`: 
+- `useBookmarks`:
   - Manages bookmark data
   - Provides CRUD operations
   - Handles bookmark state management
+
+- `useSearch`:
+  - Implements Fuse.js fuzzy search
+  - Supports searching across scripts and bookmarks
+  - 300ms debounce for search input
+  - Provides category filtering
+  - Implements error boundaries for search operations
 
 - `useDarkMode`: 
   - Manages dark mode toggle
@@ -33,9 +40,13 @@
 - `ScriptCard`: Renders individual script details
 - `BookmarkCard`: Displays bookmark information
 - `Header`: Application navigation
-- `SearchBar`: Enables script/bookmark searching
+- `SearchBar`:
+  - Enables script/bookmark searching
+  - Includes clear button
+  - Supports category filtering
 - `Footer`: Application footer
 - `InstallBanner`: Userscript manager installation prompt
+- `ErrorBoundary`: Handles search operation errors
 
 ### Pages
 - `Home`: Script listing page
