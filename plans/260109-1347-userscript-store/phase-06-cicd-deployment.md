@@ -12,8 +12,8 @@
 | Date | 2026-01-09 |
 | Priority | P1 |
 | Effort | 1h |
-| Status | pending |
-| Review | pending |
+| Status | completed |
+| Review | approved |
 
 Set up GitHub Actions for auto-deploy to GitHub Pages with custom domain.
 
@@ -155,10 +155,10 @@ Update `package.json`:
 
 ## Todo List
 
-- [ ] Create .github/workflows/deploy.yml
-- [ ] Create public/CNAME file
-- [ ] Update vite.config.ts with alias and base
-- [ ] Add postbuild script for 404.html
+- [x] Create .github/workflows/deploy.yml
+- [x] Create public/CNAME file
+- [x] Update vite.config.ts with alias and base
+- [x] Add postbuild script for 404.html
 - [ ] Push to main and verify deployment
 - [ ] Configure custom domain in GitHub settings
 - [ ] Set up DNS CNAME record
