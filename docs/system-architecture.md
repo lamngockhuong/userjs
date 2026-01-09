@@ -54,8 +54,8 @@
   - Provides search and filtering capabilities
 
 - `ScriptDetail`: Individual script preview page
-  - Shows full script code
-  - Enables syntax highlighting
+  - Shows full script code with syntax highlighting
+  - Renders optional markdown readme if available
   - Provides script metadata
 
 - `Bookmarks`: User's bookmarked scripts page
@@ -90,3 +90,12 @@
 - Code-splitting via Vite
 - Lazy loading of components
 - Efficient reactivity with Vue 3
+
+## SEO
+- Static meta tags in `index.html`:
+  - Description, keywords, author, canonical URL
+  - Open Graph tags (og:title, og:description, og:image, etc.)
+  - Twitter Card tags (summary_large_image)
+- `robots.txt` allowing all crawlers
+- `sitemap.xml` with main URLs
+- Note: Hash-based routing limits per-page SEO; consider prerendering for future enhancement

@@ -22,6 +22,7 @@
 ### Short-Term Goals (Next 1-2 Sprints)
 - [x] Implement Bookmarks Functionality
 - [x] Add Search Capabilities
+- [x] Basic SEO (robots.txt, sitemap, Open Graph, Twitter Cards)
 - [ ] Enhance Error Handling
 - [ ] Complete Initial Documentation
 - [ ] Set Up Continuous Integration

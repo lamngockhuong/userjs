@@ -1,19 +1,6 @@
 {
   "scripts": [
     {
-      "name": "Hello World",
-      "version": "1.0.0",
-      "description": "A sample userscript that logs a greeting message",
-      "author": "Lam Ngoc Khuong",
-      "category": "general",
-      "filename": "hello-world.user.js",
-      "matches": [
-        "https://*/*"
-      ],
-      "installUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/general/hello-world.user.js",
-      "sourceUrl": "https://github.com/lamngockhuong/userjs/blob/main/scripts/general/hello-world.user.js"
-    },
-    {
       "name": "GIFHub",
       "version": "1.1.0",
       "description": "Insert GIFs into GitHub comments, PRs, issues, and discussions",
@@ -26,21 +13,22 @@
       "installUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/github/gifhub.user.js",
       "sourceUrl": "https://github.com/lamngockhuong/userjs/blob/main/scripts/github/gifhub.user.js",
       "readmeUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/github/gifhub.md"
+    },
+    {
+      "name": "Hello World",
+      "version": "1.0.0",
+      "description": "A sample userscript that logs a greeting message",
+      "author": "Lam Ngoc Khuong",
+      "category": "general",
+      "filename": "hello-world.user.js",
+      "matches": [
+        "https://*/*"
+      ],
+      "installUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/general/hello-world.user.js",
+      "sourceUrl": "https://github.com/lamngockhuong/userjs/blob/main/scripts/general/hello-world.user.js"
     }
   ],
   "bookmarks": [
-    {
-      "name": "YouTube Auto HD",
-      "url": "https://greasyfork.org/en/scripts/28282-youtube-auto-hd",
-      "description": "Automatically sets YouTube video quality to highest available",
-      "category": "youtube"
-    },
-    {
-      "name": "YouTube Remove Shorts",
-      "url": "https://greasyfork.org/en/scripts/444513-youtube-remove-shorts",
-      "description": "Removes YouTube Shorts from the interface",
-      "category": "youtube"
-    },
     {
       "name": "GitHub Dark",
       "url": "https://github.com/StylishThemes/GitHub-Dark",

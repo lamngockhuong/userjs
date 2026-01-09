@@ -25,7 +25,11 @@ userjs/
 │   └── generate-index.ts  # User Script Metadata Generator
 │
 ├── public/            # Public Static Assets
-│   └── scripts-index.json  # Generated Script Index
+│   ├── scripts-index.json  # Generated Script Index
+│   ├── robots.txt          # Search Engine Crawling Rules
+│   ├── sitemap.xml         # Sitemap for SEO
+│   ├── og-image.png        # Open Graph Image (1200x630)
+│   └── og-image.svg        # OG Image Source
 │
 ├── scripts/           # Project Utility Scripts
 │   └── general/       # Sample User Scripts
@@ -50,6 +54,7 @@ userjs/
 - Responsive Design
 - TypeScript Strict Type Checking
 - Dynamic User Script Indexing
+- SEO Optimized (Open Graph, Twitter Cards, Sitemap)
 - Dynamic Page Titles per Route
   - Format: `{Page} - UserJS Store | Khuong Dev`
 - Keyboard Navigation Shortcuts
@@ -59,9 +64,12 @@ userjs/
   - `Shift+D` for Dark Mode Toggle
 - Four Core Pages
   - Home (Script Listing)
-  - ScriptDetail (Code Preview)
+  - ScriptDetail (Code Preview + Optional Markdown Readme)
   - Bookmarks
   - NotFound Error Page
+- Optional Markdown Documentation per Script
+  - Place `.md` file alongside `.user.js` (same name)
+  - Rendered on ScriptDetail page if available
 - GitHub API Integration
   - 1-hour cache TTL
 - Syntax Highlighting with Shiki
@@ -77,8 +85,9 @@ userjs/
 ## Build Scripts
 ### generate-index.ts
 - Parses User Script Metadata from `.user.js` files
+- Detects optional `.md` readme files (e.g., `script.md` for `script.user.js`)
 - Reads `BOOKMARKS.md` for additional script information
-- Generates `public/scripts-index.json`
+- Generates `public/scripts-index.json` with `readmeUrl` if readme exists
 - Security Features:
   - Path Traversal Protection
   - URL Encoding

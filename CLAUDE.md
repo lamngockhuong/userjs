@@ -45,6 +45,9 @@ public/
 ├── scripts/          # Userscript files organized by category
 │   └── <category>/<name>.user.js
 ├── scripts-index.json  # Auto-generated index (do not edit manually)
+├── robots.txt        # SEO: crawling rules
+├── sitemap.xml       # SEO: sitemap
+├── og-image.png      # SEO: Open Graph image (1200x630)
 └── CNAME             # Custom domain config
 ```
 
@@ -86,6 +89,12 @@ Page titles are managed via `router.afterEach` hook and route meta.
 - Fuse.js (fuzzy search)
 - Shiki (syntax highlighting)
 - Lucide Vue Next (icons)
+
+## SEO
+
+- Meta tags in `index.html`: description, keywords, author, canonical, Open Graph, Twitter Cards
+- `robots.txt` + `sitemap.xml` for search engines
+- Hash routing (`/#/`) limits per-page SEO; detail pages not individually indexed
 
 ## Deployment
 
