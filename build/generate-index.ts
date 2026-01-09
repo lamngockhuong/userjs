@@ -3,7 +3,7 @@
  * Parses userscript metadata from .user.js files and bookmarks from BOOKMARKS.md
  */
 import { glob } from 'glob'
-import { readFileSync, writeFileSync, mkdirSync, realpathSync } from 'fs'
+import { readFileSync, writeFileSync, mkdirSync, realpathSync, existsSync } from 'fs'
 import { basename, dirname, resolve } from 'path'
 
 // Configuration
@@ -21,6 +21,7 @@ interface ScriptMeta {
   matches: string[]
   installUrl: string
   sourceUrl: string
+  readmeUrl?: string // Optional markdown readme URL
 }
 
 interface Bookmark {
@@ -107,7 +108,11 @@ function parseUserscriptMeta(content: string, filepath: string): ScriptMeta | nu
   const filename = basename(filepath)
   const encodedPath = encodeFilePath(filepath)
 
-  return {
+  // Check for optional readme markdown file (same name, .md extension)
+  const readmePath = filepath.replace(/\.user\.js$/, '.md')
+  const hasReadme = existsSync(readmePath) && isPathSafe(readmePath)
+
+  const result: ScriptMeta = {
     name,
     version: get('version') || '1.0.0',
     description: get('description'),
@@ -118,6 +123,12 @@ function parseUserscriptMeta(content: string, filepath: string): ScriptMeta | nu
     installUrl: `${RAW_URL}/${encodedPath}`,
     sourceUrl: `${REPO_URL}/blob/main/${encodedPath}`,
   }
+
+  if (hasReadme) {
+    result.readmeUrl = `${RAW_URL}/${encodeFilePath(readmePath)}`
+  }
+
+  return result
 }
 
 function parseBookmarks(content: string): Bookmark[] {

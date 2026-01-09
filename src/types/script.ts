@@ -8,6 +8,7 @@ export interface Script {
   matches: string[]
   installUrl: string
   sourceUrl: string
+  readmeUrl?: string // Optional markdown readme URL
 }
 
 export interface Bookmark {

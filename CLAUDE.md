@@ -52,9 +52,11 @@ public/
 
 ### Adding Userscripts
 
-1. Add `.user.js` files to `public/scripts/<category>/`
-2. Run `pnpm build` or `pnpm generate-index`
-3. Metadata parsed from userscript headers automatically
+1. Add `.user.js` files to `scripts/<category>/`
+2. Optionally add `.md` file with same name for documentation (e.g., `hello-world.md` for `hello-world.user.js`)
+3. Run `pnpm build` or `pnpm generate-index`
+4. Metadata parsed from userscript headers automatically
+5. Readme markdown is rendered on script detail page if available
 
 ### Composables Pattern
 

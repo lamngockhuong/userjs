@@ -3,8 +3,9 @@ import { onMounted, ref, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useScripts } from '@/composables/useScripts'
 import { BASE_TITLE } from '@/router'
-import { Download, ExternalLink, ArrowLeft, History, Code, Copy, Check } from 'lucide-vue-next'
+import { Download, ExternalLink, ArrowLeft, History, Code, Copy, Check, FileText } from 'lucide-vue-next'
 import { codeToHtml } from 'shiki'
+import { marked } from 'marked'
 
 const route = useRoute()
 const { fetchScripts, getBySlug } = useScripts()
@@ -32,6 +33,8 @@ const highlightedCode = ref('')
 const loadingCode = ref(false)
 const codeCopied = ref(false)
 const copyError = ref(false)
+const readmeHtml = ref('')
+const loadingReadme = ref(false)
 
 // Validate route params (alphanumeric, dash, underscore, dot only)
 const isValidParam = (param: string) => /^[\w\-.]+$/.test(param)
@@ -59,7 +62,38 @@ const script = computed(() => {
 // Update page title when script loads
 watch(script, (s) => {
   document.title = s ? `${s.name} - ${BASE_TITLE}` : `Script - ${BASE_TITLE}`
+  // Fetch readme if available
+  if (s?.readmeUrl) {
+    fetchReadme(s.readmeUrl)
+  }
 }, { immediate: true })
+
+async function fetchReadme(remoteUrl: string) {
+  if (!script.value) return
+
+  loadingReadme.value = true
+  readmeHtml.value = ''
+
+  // Local fallback: same filename but .md extension
+  const localUrl = `/scripts/${script.value.category}/${script.value.filename.replace(/\.user\.js$/, '.md')}`
+
+  try {
+    // Try remote first, fallback to local for dev
+    let res = await fetch(remoteUrl)
+    if (!res.ok) {
+      res = await fetch(localUrl)
+    }
+    if (res.ok) {
+      const markdown = await res.text()
+      const html = await marked(markdown)
+      readmeHtml.value = html
+    }
+  } catch {
+    // Readme fetch failed - silently ignore
+  } finally {
+    loadingReadme.value = false
+  }
+}
 
 async function fetchGitHistory() {
   if (!script.value) return
@@ -222,6 +256,22 @@ async function copyCode() {
           </a>
         </div>
       </article>
+
+      <!-- Readme Section (optional) -->
+      <section v-if="loadingReadme || readmeHtml"
+               class="p-6 border rounded-lg bg-white dark:bg-slate-800 dark:border-slate-700"
+               aria-label="Script documentation">
+        <h2 class="flex items-center gap-2 text-lg font-semibold mb-4">
+          <FileText :size="20" /> Documentation
+        </h2>
+        <div v-if="loadingReadme" class="text-slate-500">Loading documentation...</div>
+        <div v-else
+             class="prose prose-slate dark:prose-invert max-w-none
+                    prose-headings:font-semibold prose-a:text-blue-500
+                    prose-img:rounded-lg prose-img:shadow-md
+                    prose-code:bg-slate-100 prose-code:dark:bg-slate-700 prose-code:px-1 prose-code:rounded"
+             v-html="readmeHtml" />
+      </section>
 
       <!-- Code Preview Panel -->
       <section v-if="showCode" class="border rounded-lg dark:border-slate-700 overflow-hidden" aria-label="Source code preview">

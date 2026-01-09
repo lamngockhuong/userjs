@@ -44,9 +44,10 @@ pnpm type-check
 
 ## Adding Scripts
 
-1. Add `.user.js` files to `public/scripts/<category>/`
-2. Run `pnpm build` to regenerate the index
-3. Scripts are auto-indexed with metadata from userscript headers
+1. Add `.user.js` files to `scripts/<category>/`
+2. Optionally add `.md` file with same name for documentation
+3. Run `pnpm build` to regenerate the index
+4. Scripts are auto-indexed with metadata from userscript headers
 
 ## License
 

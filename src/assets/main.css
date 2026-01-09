@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 /* Theme configuration (Tailwind v4 CSS-first) */
 /* Fonts loaded via <link> in index.html for better performance */
