@@ -1,30 +1,26 @@
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
 import { useScripts } from '@/composables/useScripts'
+import { useSearch } from '@/composables/useSearch'
 import ScriptCard from '@/components/ScriptCard.vue'
 import SearchBar from '@/components/SearchBar.vue'
 
 const { scripts, loading, error, fetchScripts, categories } = useScripts()
-const search = ref('')
 const selectedCategory = ref('')
 
 onMounted(fetchScripts)
 
-const filtered = computed(() => {
-  let result = scripts.value
-  if (selectedCategory.value) {
-    result = result.filter(s => s.category === selectedCategory.value)
-  }
-  if (search.value) {
-    const q = search.value.toLowerCase()
-    result = result.filter(s =>
-      s.name.toLowerCase().includes(q) ||
-      s.description.toLowerCase().includes(q) ||
-      s.matches.some(m => m.toLowerCase().includes(q))
-    )
-  }
-  return result
+// Category filter first (more efficient to filter smaller set)
+const categoryFiltered = computed(() => {
+  if (!selectedCategory.value) return scripts.value
+  return scripts.value.filter(s => s.category === selectedCategory.value)
 })
+
+// Fuzzy search on category-filtered results
+const { query: search, results: filtered } = useSearch(
+  categoryFiltered,
+  ['name', 'description', 'matches']
+)
 </script>
 
 <template>
@@ -58,7 +54,7 @@ const filtered = computed(() => {
     </div>
 
     <p v-if="!loading && !error && !filtered.length" class="text-center text-slate-500 py-8">
-      No scripts found
+      {{ search ? 'No scripts found matching your search' : 'No scripts found' }}
     </p>
   </main>
 </template>
