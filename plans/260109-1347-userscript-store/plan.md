@@ -43,7 +43,7 @@ Build a static SPA to host personal userscripts and bookmark external scripts. D
 |---|-------|--------|--------|
 | 1 | [Project Setup](./phase-01-project-setup.md) | 1h | done |
 | 2 | [Build Scripts](./phase-02-build-scripts.md) | 1.5h | done |
-| 3 | [Core Components](./phase-03-core-components.md) | 2h | pending |
+| 3 | [Core Components](./phase-03-core-components.md) | 2h | done |
 | 4 | [Pages & Routing](./phase-04-pages-routing.md) | 1.5h | pending |
 | 5 | [Search & Filter](./phase-05-search-filter.md) | 1h | pending |
 | 6 | [CI/CD & Deployment](./phase-06-cicd-deployment.md) | 1h | pending |

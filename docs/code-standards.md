@@ -1,95 +1,47 @@
-# Code Standards and Guidelines
+# Code Standards: UserJS Vue Userscript Manager
 
-## TypeScript Configuration
-- Strict Mode Enabled
-- `noUncheckedIndexedAccess`: Preventing unsafe array/object access
-- Explicit Type Annotations
-- Avoid `any` type
+## General Principles
+- Follow Vue 3 Composition API best practices
+- Use TypeScript for type safety
+- Prioritize readability and maintainability
+- Keep components and composables focused and single-responsibility
 
-## Build Script Guidelines
-### generate-index.ts
-- Single Responsibility: Script Metadata Parsing
-- Separation of Concerns
-- Input Validation Techniques:
-  ```typescript
-  // Security Best Practices Example
-  function validateMetadata(metadata: UserScriptMetadata) {
-    // Validate URL
-    // Check metadata size
-    // Sanitize inputs
-  }
-  ```
-- Error Handling Patterns
-- Secure File System Operations
-  - Prevent Path Traversal
-  - Use Safe Path Resolution
-  - Validate and Sanitize File Paths
+## Naming Conventions
+- Components: PascalCase (e.g., `ScriptCard`)
+- Composables: camelCase with 'use' prefix (e.g., `useScripts`)
+- Props: camelCase
+- Events: kebab-case
+- CSS classes: kebab-case
 
-### NPM Script Conventions
-- Pre/Post Hook Naming
-  - `predev`: Prepare environment before development
-  - `prebuild`: Prepare for production build
-- Explicit Script Names
-- Avoid Complex Logic in npm Scripts
+## Composable Design
+- Return reactive or computed values
+- Handle error states explicitly
+- Provide clear type definitions
+- Minimize side effects
+- Use `ref()` and `reactive()` appropriately
 
-## Build and Generation Process
-- Incremental Build Support
-- Reproducible Builds
-- Consistent Output Generation
-- Metadata Integrity
-- Performance Considerations
-
-## Vue Component Structure
-- Single File Components (.vue)
-- Composition API Preferred
-- Meaningful Component and Variable Naming
-- Max 250 LOC per Component
-
-## Styling Guidelines
-- Tailwind CSS Utility-First
-- Responsive Design Principles
-- Accessibility-Compliant Styles
-- Minimal Custom CSS
-
-## Performance Best Practices
-- Lazy Loading Components
-- Minimal Prop Drilling
-- Efficient Reactive Dependencies
-- Computed Properties Over Methods
+## Component Structure
+- Use `<script setup>` syntax
+- Define props with `defineProps()`
+- Use `defineEmits()` for event emissions
+- Keep template logic minimal
+- Extract complex logic to composables
 
 ## Error Handling
-- Global Error Boundary
-- Descriptive Error Messages
-- Fallback UI for Error States
-- Comprehensive Error Logging
-- Graceful Degradation
+- Provide user-friendly error messages
+- Log errors for debugging
+- Implement fallback states
+- Use try/catch in async operations
 
-## Security Guidelines
-- Input Validation
-- Sanitize External Data
-- Prevent XSS
-- URL Validation
-- Size Limits on User Inputs
-- Safe File System Operations
+## Accessibility
+- Follow WCAG 2.1 guidelines
+- Use semantic HTML
+- Provide proper aria attributes
+- Ensure keyboard navigation
+- Support color contrast requirements
 
-## Accessibility Standards
-- WCAG 2.1 Compliance
-- Semantic HTML
-- Keyboard Navigation Support
-- Color Contrast Guidelines
-
-## Git Workflow
-- Conventional Commits
-- Feature Branch Strategy
-- Meaningful Commit Messages
-- Pull Request Review Process
-
-## Code Review Checklist
-- TypeScript Type Safety
-- Performance Impact
-- Accessibility Compliance
-- Code Duplication
-- Error Handling
-- Test Coverage
-- Security Considerations
-- Build Script Validation
+## Performance
+- Use `v-once` for static content
+- Implement lazy loading
+- Minimize re-renders
+- Use `computed` and `watch` efficiently

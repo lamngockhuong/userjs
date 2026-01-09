@@ -13,8 +13,9 @@
 | Date | 2026-01-09 |
 | Priority | P1 |
 | Effort | 2h |
-| Status | pending |
-| Review | pending |
+| Status | done |
+| Review | approved (9.2/10) |
+| Completed | 2026-01-09 15:16 |
 
 Build reusable Vue components and composables for the store UI.
 
@@ -461,28 +462,28 @@ import { Github } from 'lucide-vue-next'
 
 ## Todo List
 
-- [ ] Create useScripts composable
-- [ ] Create useBookmarks composable
-- [ ] Create useDarkMode composable
-- [ ] Create ScriptCard component
-- [ ] Create BookmarkCard component
-- [ ] Create Header component with nav
-- [ ] Create SearchBar component
-- [ ] Create Footer component
-- [ ] Create useUserscriptManager composable
-- [ ] Create InstallBanner component
-- [ ] Test dark mode toggle persistence
-- [ ] Test userscript manager detection banner
+- [x] Create useScripts composable
+- [x] Create useBookmarks composable
+- [x] Create useDarkMode composable
+- [x] Create ScriptCard component
+- [x] Create BookmarkCard component
+- [x] Create Header component with nav
+- [x] Create SearchBar component
+- [x] Create Footer component
+- [x] Create useUserscriptManager composable
+- [x] Create InstallBanner component
+- [x] Test dark mode toggle persistence
+- [x] Test userscript manager detection banner
 
 ## Success Criteria
 
-- [ ] Composables fetch and cache data correctly
-- [ ] ScriptCard displays all script info
-- [ ] Install button links to raw .user.js file
-- [ ] Dark mode persists across page reload
-- [ ] Components responsive on mobile
-- [ ] InstallBanner shows when no userscript manager detected
-- [ ] Banner can be dismissed and stays dismissed
+- [x] Composables fetch and cache data correctly
+- [x] ScriptCard displays all script info
+- [x] Install button links to raw .user.js file
+- [x] Dark mode persists across page reload
+- [x] Components responsive on mobile
+- [x] InstallBanner shows when no userscript manager detected
+- [x] Banner can be dismissed and stays dismissed
 
 ## Next Steps
 

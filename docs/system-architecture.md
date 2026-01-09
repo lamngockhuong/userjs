@@ -1,62 +1,53 @@
-# System Architecture
+# System Architecture: UserJS Vue Userscript Manager
 
-## Application Architecture
-- **Type**: Single Page Application (SPA)
-- **Framework**: Vue 3 with Composition API
-- **Rendering**: Client-side rendering with potential SSR considerations
+## Architecture Overview
+- Single-page application (SPA) built with Vue 3 Composition API
+- Vite as build tool and development server
+- Tailwind CSS for styling
+- Modular component and composable architecture
 
-## Core Architecture Components
-1. **Router (vue-router)**
-   - Hash mode navigation
-   - Lazy-loaded route components
-   - Navigation guards
+## Component Architecture
 
-2. **State Management**
-   - Composition API reactive references
-   - Potentially Vue's `provide/inject`
-   - Minimal global state
+### Composables
+- `useScripts`: 
+  - Manages script data retrieval
+  - Handles error states
+  - Provides reactive script list
 
-3. **Dependency Injection**
-   - Vue 3 Composition API
-   - @vueuse/core for utility composables
+- `useBookmarks`: 
+  - Manages bookmark data
+  - Provides CRUD operations
+  - Handles bookmark state management
 
-## Frontend Infrastructure
-- **Build**: Vite 7.3.1
-  - ES Module based
-  - Fast Hot Module Replacement (HMR)
-  - TypeScript support
+- `useDarkMode`: 
+  - Manages dark mode toggle
+  - Persists mode in localStorage
+  - Provides reactive dark mode state
 
-- **Styling**: Tailwind CSS v4
-  - Utility-first approach
-  - Runtime optimization
-  - Dark mode support
+- `useUserscriptManager`:
+  - Detects userscript manager
+  - Provides install detection logic
+  - Manages userscript-related operations
 
-## Type System
-- TypeScript with Strict Mode
-- `noUncheckedIndexedAccess`
-- Explicit type annotations
-- Minimal use of `any`
+### UI Components
+- `ScriptCard`: Renders individual script details
+- `BookmarkCard`: Displays bookmark information
+- `Header`: Application navigation
+- `SearchBar`: Enables script/bookmark searching
+- `Footer`: Application footer
+- `InstallBanner`: Userscript manager installation prompt
 
-## Error Handling Strategy
-- Global error boundary
-- Centralized error logging
-- Fallback UI components
-- Graceful degradation
+## State Management
+- Composition API reactive state
+- localStorage for persistent settings
+- Minimal global state, component-level reactivity
 
-## Performance Optimization
-- Code splitting
-- Lazy loading
-- Minimal re-renders
-- Efficient reactivity system
+## Browser Interaction
+- SSR-safe browser API usage
+- Graceful fallback for unsupported browsers
+- Minimal DOM manipulation
 
-## Security Considerations
-- No direct DOM manipulation
-- Vue's built-in XSS protection
-- Proper input sanitization
-- Content Security Policy
-
-## Scalability Patterns
-- Modular component design
-- Composition over inheritance
-- Dependency injection
-- Feature-based code organization
+## Performance Considerations
+- Code-splitting via Vite
+- Lazy loading of components
+- Efficient reactivity with Vue 3
