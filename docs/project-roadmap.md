@@ -1,6 +1,6 @@
 # Project Roadmap
 
-## Current Phase: Initial Setup
+## Current Phase: Pages & Routing (Phase 04)
 - [x] Vue 3 + Vite Project Initialization
 - [x] TypeScript Configuration
 - [x] Tailwind CSS Integration
@@ -8,12 +8,20 @@
 - [x] Basic Page Components
 - [x] Dark Mode Support
 - [x] Accessibility Features
+- [x] Implement Four Core Pages
+  - [x] Home (Script Listing)
+  - [x] ScriptDetail (Code Preview)
+  - [x] Bookmarks
+  - [x] NotFound Error Page
+- [x] Keyboard Navigation Shortcuts
+- [x] GitHub API Integration (1-hour cache)
+- [x] Syntax Highlighting with Shiki
 
 ## Upcoming Milestones
 
 ### Short-Term Goals (Next 1-2 Sprints)
-- [ ] Implement Bookmarks Functionality
-- [ ] Add Search Capabilities
+- [x] Implement Bookmarks Functionality
+- [x] Add Search Capabilities
 - [ ] Enhance Error Handling
 - [ ] Complete Initial Documentation
 - [ ] Set Up Continuous Integration

@@ -37,6 +37,32 @@
 - `Footer`: Application footer
 - `InstallBanner`: Userscript manager installation prompt
 
+### Pages
+- `Home`: Script listing page
+  - Displays paginated script list
+  - Provides search and filtering capabilities
+
+- `ScriptDetail`: Individual script preview page
+  - Shows full script code
+  - Enables syntax highlighting
+  - Provides script metadata
+
+- `Bookmarks`: User's bookmarked scripts page
+  - Manages saved/bookmarked scripts
+  - Supports searching and filtering bookmarks
+
+- `NotFound`: 404 error page
+  - Handles undefined routes
+  - Provides navigation back to home
+
+## Routing
+- Vue Router for client-side navigation
+- Keyboard shortcuts:
+  - `/`: Trigger search
+  - `Shift+G`: Navigate to Home
+  - `Shift+B`: Open Bookmarks
+  - `Shift+D`: Toggle Dark Mode
+
 ## State Management
 - Composition API reactive state
 - localStorage for persistent settings

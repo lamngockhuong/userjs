@@ -50,6 +50,20 @@ userjs/
 - Responsive Design
 - TypeScript Strict Type Checking
 - Dynamic User Script Indexing
+- Keyboard Navigation Shortcuts
+  - `/` for Search
+  - `Shift+G` to Home
+  - `Shift+B` to Bookmarks
+  - `Shift+D` for Dark Mode Toggle
+- Four Core Pages
+  - Home (Script Listing)
+  - ScriptDetail (Code Preview)
+  - Bookmarks
+  - NotFound Error Page
+- GitHub API Integration
+  - 1-hour cache TTL
+- Syntax Highlighting with Shiki
+- Full-Text Search Capabilities
 
 ## Dependency Highlights
 - @vueuse/core: Utility Composables

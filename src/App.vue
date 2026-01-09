@@ -3,6 +3,9 @@ import { RouterView } from 'vue-router'
 import Header from '@/components/Header.vue'
 import Footer from '@/components/Footer.vue'
 import InstallBanner from '@/components/InstallBanner.vue'
+import { useKeyboardShortcuts } from '@/composables/useKeyboardShortcuts'
+
+useKeyboardShortcuts()
 </script>
 
 <template>
@@ -15,7 +18,9 @@ import InstallBanner from '@/components/InstallBanner.vue'
     </a>
     <InstallBanner />
     <Header />
-    <RouterView />
+    <div class="flex-1 max-w-6xl mx-auto w-full px-4 py-6">
+      <RouterView />
+    </div>
     <Footer />
   </div>
 </template>

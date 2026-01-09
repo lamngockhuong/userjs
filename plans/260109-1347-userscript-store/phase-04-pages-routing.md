@@ -12,8 +12,9 @@
 | Date | 2026-01-09 |
 | Priority | P1 |
 | Effort | 1.5h |
-| Status | pending |
-| Review | pending |
+| Status | done |
+| Review | approved (8.5/10 → fixed) |
+| Completed | 2026-01-09T15:34:00Z |
 
 Implement page views and routing for the store.
 
