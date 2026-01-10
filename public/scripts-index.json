@@ -15,7 +15,7 @@
     },
     {
       "name": "Disable Merge for GitHub PR",
-      "version": "0.7",
+      "version": "1.0",
       "description": "Automatically disable regular/squash merge on target branch for GitHub PRs",
       "author": "Lam Ngoc Khuong",
       "category": "github",
