@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         GIFHub
 // @namespace    https://userjs.khuong.dev
-// @version      1.1.0
+// @version      1.1.1
 // @description  Insert GIFs into GitHub comments, PRs, issues, and discussions
 // @author       Lam Ngoc Khuong
 // @match        https://github.com/*
@@ -497,6 +497,12 @@
   // Add GIF button to textarea
   function addGifButtonToToolbar(textarea) {
     if (textarea.dataset.gifButtonAdded) return;
+
+    // Skip merge/commit dialog textareas
+    if (textarea.closest('[class*="ConfirmMerge"]') ||
+        textarea.placeholder?.startsWith('Add an optional extended description')) {
+      return;
+    }
 
     const btn = createGifButton();
     btn.addEventListener('click', (e) => {
