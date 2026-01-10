@@ -60,12 +60,11 @@ public/
 
 ### Adding Userscripts
 
-1. Add `.user.js` files to `scripts/<category>/`
-2. Optionally add `.md` file with same name for documentation (e.g., `hello-world.md` for
-   `hello-world.user.js`)
-3. Run `pnpm build` or `pnpm generate-index`
-4. Metadata parsed from userscript headers automatically
-5. Readme markdown is rendered on script detail page if available
+See [docs/userscript-guidelines.md](docs/userscript-guidelines.md) for detailed requirements including:
+- Required metadata fields
+- Naming conventions
+- Documentation template
+- URL patterns for updates
 
 ### Adding Bookmarks
 
