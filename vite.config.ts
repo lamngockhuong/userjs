@@ -11,4 +11,7 @@ export default defineConfig({
       '@': resolve(__dirname, 'src'),
     },
   },
+  define: {
+    __BUILD_TIME__: JSON.stringify(Date.now().toString(36)),
+  },
 })

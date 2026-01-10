@@ -12,7 +12,7 @@ export function useBookmarks() {
     loading.value = true
     error.value = null
     try {
-      const res = await fetch('/scripts-index.json')
+      const res = await fetch(`/scripts-index.json?v=${__BUILD_TIME__}`)
       if (!res.ok) {
         throw new Error(`HTTP ${res.status}: ${res.statusText}`)
       }
