@@ -1,6 +1,6 @@
 # Project Roadmap
 
-## Current Phase: Pages & Routing (Phase 04)
+## Completed
 
 - [x] Vue 3 + Vite Project Initialization
 - [x] TypeScript Configuration
@@ -17,25 +17,25 @@
 - [x] Keyboard Navigation Shortcuts
 - [x] GitHub API Integration (1-hour cache)
 - [x] Syntax Highlighting with Shiki
+- [x] Bookmarks Functionality
+- [x] Search Capabilities with Fuzzy Matching (Fuse.js)
+- [x] Basic SEO (robots.txt, sitemap, Open Graph, Twitter Cards)
+- [x] Continuous Integration (lint + type-check workflow)
+- [x] Initial Documentation (8 docs)
+- [x] Bundle Size Optimization
 
 ## Upcoming Milestones
 
-### Short-Term Goals (Next 1-2 Sprints)
+### Short-Term Goals
 
-- [x] Implement Bookmarks Functionality
-- [x] Add Search Capabilities
-- [x] Basic SEO (robots.txt, sitemap, Open Graph, Twitter Cards)
 - [ ] Enhance Error Handling
-- [ ] Complete Initial Documentation
-- [ ] Set Up Continuous Integration
-
-### Mid-Term Goals (Next 2-3 Months)
-
-- [ ] Performance Optimization
-- [ ] Advanced Search with Fuzzy Matching
-- [ ] Implement User Preferences
 - [ ] Cross-Browser Testing
 - [ ] Accessibility Audit
+
+### Mid-Term Goals
+
+- [ ] Implement User Preferences
+- [ ] Comprehensive Testing Suite
 
 ### Long-Term Vision
 
