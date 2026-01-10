@@ -43,6 +43,10 @@ Insert GIFs directly into GitHub comments, PRs, issues, discussions, and gists w
 
 ## Changelog
 
+### v1.2.1
+
+- Added script icon
+
 ### v1.2.0
 
 - Added support for gist.github.com
