@@ -16,7 +16,7 @@
     },
     {
       "name": "GIFHub",
-      "version": "1.2.1",
+      "version": "1.2.2",
       "description": "Insert GIFs into GitHub comments, PRs, issues, discussions, and gists",
       "author": "Lam Ngoc Khuong",
       "category": "github",
@@ -41,6 +41,20 @@
       ],
       "installUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/general/hello-world.user.js",
       "sourceUrl": "https://github.com/lamngockhuong/userjs/blob/main/scripts/general/hello-world.user.js"
+    },
+    {
+      "name": "Change Translate Attribute",
+      "version": "0.3",
+      "description": "Change translate=\"no\" to translate=\"yes\"",
+      "author": "Lam Ngoc Khuong",
+      "category": "general",
+      "filename": "change-translate-attribute.user.js",
+      "matches": [
+        "*://*/*"
+      ],
+      "installUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/general/change-translate-attribute.user.js",
+      "sourceUrl": "https://github.com/lamngockhuong/userjs/blob/main/scripts/general/change-translate-attribute.user.js",
+      "readmeUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/general/change-translate-attribute.md"
     }
   ],
   "bookmarks": [
