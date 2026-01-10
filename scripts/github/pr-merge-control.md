@@ -29,6 +29,7 @@ Install the script and navigate to any GitHub PR page. When you click the merge 
 
 ## Changelog
 
+- **v1.4** - Fix selector for new GitHub Primer React UI
 - **v1.3** - Add polling for lazy-loaded merge box
 - **v1.2** - Fix main merge button not being disabled
 - **v1.1** - Fix CSS specificity issues with inline styles
