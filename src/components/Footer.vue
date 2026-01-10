@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Github, ExternalLink, Code2, Heart } from 'lucide-vue-next'
+import { Code2, ExternalLink, Github, Heart } from 'lucide-vue-next'
 
 const currentYear = new Date().getFullYear()
 </script>

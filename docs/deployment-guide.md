@@ -1,11 +1,13 @@
 # Deployment Guide
 
 ## Prerequisites
+
 - Node.js (version specified in .nvmrc)
 - pnpm package manager
 - Git
 
 ## Local Development Setup
+
 ```bash
 # Clone the repository
 git clone <repository-url>
@@ -19,6 +21,7 @@ pnpm dev
 ```
 
 ## Build for Production
+
 ```bash
 # Build static assets
 pnpm build
@@ -28,6 +31,7 @@ pnpm preview
 ```
 
 ## Deployment Options
+
 1. **Static Hosting**
    - Platforms: Netlify, Vercel, GitHub Pages
    - Use `dist/` directory for deployment
@@ -44,16 +48,19 @@ pnpm preview
    - Build and deployment workflows
 
 ## Environment Configuration
+
 - Use `.env` files for configuration
 - Separate configs for development/production
 - Do not commit sensitive information
 
 ## Performance Optimization
+
 - Enable gzip/brotli compression
 - Implement CDN for static assets
 - Use appropriate caching headers
 
 ## Monitoring & Logging
+
 - Integrate error tracking service
 - Set up performance monitoring
 - Configure logging mechanisms

@@ -6,7 +6,8 @@ Insert GIFs directly into GitHub comments, PRs, issues, and discussions with a s
 
 - **GIF Button** - Adds a "GIF" button to GitHub's markdown toolbar
 - **Search GIFs** - Search from Giphy's extensive GIF library
-- **Vietnamese Support** - Automatically converts Vietnamese diacritics to ASCII for better search results
+- **Vietnamese Support** - Automatically converts Vietnamese diacritics to ASCII for better search
+  results
 - **Keyboard Accessible** - Full keyboard navigation support (Tab, Enter, Escape)
 - **Dark Mode** - Respects GitHub's theme settings
 
@@ -40,6 +41,10 @@ Insert GIFs directly into GitHub comments, PRs, issues, and discussions with a s
 | `@connect github-gifs.aldilaff6545.workers.dev` | GIF search API endpoint           |
 
 ## Changelog
+
+### v1.1.1
+
+- Exclude merge/commit dialog textareas to avoid UI conflicts
 
 ### v1.1.0
 

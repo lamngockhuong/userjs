@@ -4,7 +4,8 @@ This file provides guidance to Claude Code when working with this repository.
 
 ## Project Overview
 
-UserJS Store - A personal userscript hosting platform built with Vue 3 and Vite. Deployed at https://userjs.khuong.dev
+UserJS Store - A personal userscript hosting platform built with Vue 3 and Vite. Deployed at
+https://userjs.khuong.dev
 
 ## Commands
 
@@ -14,6 +15,10 @@ pnpm dev              # Start dev server (auto-generates scripts-index.json)
 pnpm build            # Type-check + build for production
 pnpm type-check       # TypeScript validation only
 pnpm generate-index   # Regenerate public/scripts-index.json from scripts/
+pnpm lint             # Check code with Biome
+pnpm lint:fix         # Auto-fix lint issues
+pnpm format:md        # Format markdown files with Prettier
+pnpm format           # Run lint:fix + format:md
 ```
 
 ## Architecture
@@ -56,7 +61,8 @@ public/
 ### Adding Userscripts
 
 1. Add `.user.js` files to `scripts/<category>/`
-2. Optionally add `.md` file with same name for documentation (e.g., `hello-world.md` for `hello-world.user.js`)
+2. Optionally add `.md` file with same name for documentation (e.g., `hello-world.md` for
+   `hello-world.user.js`)
 3. Run `pnpm build` or `pnpm generate-index`
 4. Metadata parsed from userscript headers automatically
 5. Readme markdown is rendered on script detail page if available
@@ -64,6 +70,7 @@ public/
 ### Adding Bookmarks
 
 Edit `BOOKMARKS.md` with format:
+
 ```markdown
 ## Category Name
 

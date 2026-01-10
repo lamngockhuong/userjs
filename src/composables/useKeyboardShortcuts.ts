@@ -8,10 +8,13 @@ export function useKeyboardShortcuts() {
 
   function handleKeydown(e: KeyboardEvent) {
     // Ignore if typing in input/textarea
-    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+    if (
+      e.target instanceof HTMLInputElement ||
+      e.target instanceof HTMLTextAreaElement
+    ) {
       // Allow Escape to blur input
       if (e.key === 'Escape') {
-        (e.target as HTMLElement).blur()
+        ;(e.target as HTMLElement).blur()
       }
       return
     }
@@ -43,7 +46,9 @@ export function useKeyboardShortcuts() {
           break
         case '?':
           // Shift+?: Show shortcuts help
-          console.log('Keyboard shortcuts: / search, Shift+G home, Shift+B bookmarks, Shift+D dark mode, Esc blur')
+          console.log(
+            'Keyboard shortcuts: / search, Shift+G home, Shift+B bookmarks, Shift+D dark mode, Esc blur',
+          )
           break
       }
     }

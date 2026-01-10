@@ -1,17 +1,29 @@
 <script setup lang="ts">
+import { ExternalLink } from 'lucide-vue-next'
 import { computed } from 'vue'
 import type { Bookmark } from '@/types/script'
-import { ExternalLink } from 'lucide-vue-next'
 
 const props = defineProps<{ bookmark: Bookmark }>()
 
 // Source badge configuration
 const sourceConfig = computed(() => {
   const configs = {
-    greasyfork: { label: 'GreasyFork', class: 'bg-red-500/20 text-red-600 dark:text-red-400' },
-    openuserjs: { label: 'OpenUserJS', class: 'bg-green-500/20 text-green-600 dark:text-green-400' },
-    github: { label: 'GitHub', class: 'bg-slate-500/20 text-slate-600 dark:text-slate-400' },
-    other: { label: 'Other', class: 'bg-purple-500/20 text-purple-600 dark:text-purple-400' },
+    greasyfork: {
+      label: 'GreasyFork',
+      class: 'bg-red-500/20 text-red-600 dark:text-red-400',
+    },
+    openuserjs: {
+      label: 'OpenUserJS',
+      class: 'bg-green-500/20 text-green-600 dark:text-green-400',
+    },
+    github: {
+      label: 'GitHub',
+      class: 'bg-slate-500/20 text-slate-600 dark:text-slate-400',
+    },
+    other: {
+      label: 'Other',
+      class: 'bg-purple-500/20 text-purple-600 dark:text-purple-400',
+    },
   }
   return configs[props.bookmark.source ?? 'other']
 })

@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import { Download, ExternalLink, X } from 'lucide-vue-next'
 import { useUserscriptManager } from '@/composables/useUserscriptManager'
-import { X, Download, ExternalLink } from 'lucide-vue-next'
 
 const { managers, showBanner, hideBanner } = useUserscriptManager()
 </script>

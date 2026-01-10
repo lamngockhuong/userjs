@@ -1,5 +1,5 @@
-import { ref, computed, watch, onUnmounted, type Ref } from 'vue'
 import Fuse, { type IFuseOptions } from 'fuse.js'
+import { computed, onUnmounted, type Ref, ref, watch } from 'vue'
 
 const DEBOUNCE_MS = 300
 
@@ -12,7 +12,7 @@ const DEBOUNCE_MS = 300
 export function useSearch<T>(
   items: Ref<T[]>,
   keys: string[],
-  options?: Partial<IFuseOptions<T>>
+  options?: Partial<IFuseOptions<T>>,
 ) {
   const query = ref('')
   const debouncedQuery = ref('')
@@ -39,7 +39,7 @@ export function useSearch<T>(
         threshold: 0.3,
         includeScore: true,
         ignoreLocation: true,
-        ...options
+        ...options,
       })
     } catch {
       // Return empty Fuse instance on error
@@ -52,7 +52,7 @@ export function useSearch<T>(
     const q = debouncedQuery.value.trim()
     if (!q) return items.value
     try {
-      return fuse.value.search(q).map(r => r.item)
+      return fuse.value.search(q).map((r) => r.item)
     } catch {
       return items.value
     }

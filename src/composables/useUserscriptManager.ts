@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue'
 
 export interface UserscriptManager {
   name: string
@@ -10,7 +10,7 @@ const STORAGE_KEY = 'usm-banner-hidden'
 const managers: UserscriptManager[] = [
   { name: 'Tampermonkey', installUrl: 'https://www.tampermonkey.net/' },
   { name: 'Violentmonkey', installUrl: 'https://violentmonkey.github.io/' },
-  { name: 'Greasemonkey', installUrl: 'https://www.greasespot.net/' }
+  { name: 'Greasemonkey', installUrl: 'https://www.greasespot.net/' },
 ]
 
 // Read initial state from localStorage immediately (SSR-safe)

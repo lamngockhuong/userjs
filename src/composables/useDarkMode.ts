@@ -9,7 +9,8 @@ export function useDarkMode() {
     try {
       isDark.value =
         localStorage.getItem('theme') === 'dark' ||
-        (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)
+        (!localStorage.getItem('theme') &&
+          window.matchMedia('(prefers-color-scheme: dark)').matches)
     } catch {
       // localStorage unavailable (private browsing)
     }
@@ -26,7 +27,9 @@ export function useDarkMode() {
     }
   })
 
-  const toggle = () => { isDark.value = !isDark.value }
+  const toggle = () => {
+    isDark.value = !isDark.value
+  }
 
   return { isDark, toggle }
 }

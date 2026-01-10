@@ -2,9 +2,16 @@
  * Build script to generate scripts-index.json
  * Parses userscript metadata from .user.js files and bookmarks from BOOKMARKS.md
  */
+
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  realpathSync,
+  writeFileSync,
+} from 'node:fs'
+import { basename, dirname, resolve } from 'node:path'
 import { glob } from 'glob'
-import { readFileSync, writeFileSync, mkdirSync, realpathSync, existsSync } from 'fs'
-import { basename, dirname, resolve } from 'path'
 
 // Configuration
 const MAX_METADATA_SIZE = 10 * 1024 // 10KB limit for metadata block
@@ -55,7 +62,7 @@ function isPathSafe(filepath: string): boolean {
 function encodeFilePath(filepath: string): string {
   return filepath
     .split('/')
-    .map(segment => encodeURIComponent(segment))
+    .map((segment) => encodeURIComponent(segment))
     .join('/')
 }
 
@@ -86,8 +93,13 @@ function detectSource(url: string): Bookmark['source'] {
   }
 }
 
-function parseUserscriptMeta(content: string, filepath: string): ScriptMeta | null {
-  const metaMatch = content.match(/\/\/ ==UserScript==([\s\S]*?)\/\/ ==\/UserScript==/)
+function parseUserscriptMeta(
+  content: string,
+  filepath: string,
+): ScriptMeta | null {
+  const metaMatch = content.match(
+    /\/\/ ==UserScript==([\s\S]*?)\/\/ ==\/UserScript==/,
+  )
   if (!metaMatch) {
     console.warn(`⚠️ Skipping ${filepath}: No metadata block found`)
     return null
@@ -101,7 +113,9 @@ function parseUserscriptMeta(content: string, filepath: string): ScriptMeta | nu
 
   // Check metadata size limit
   if (meta.length > MAX_METADATA_SIZE) {
-    console.warn(`⚠️ Skipping ${filepath}: Metadata block exceeds ${MAX_METADATA_SIZE / 1024}KB limit`)
+    console.warn(
+      `⚠️ Skipping ${filepath}: Metadata block exceeds ${MAX_METADATA_SIZE / 1024}KB limit`,
+    )
     return null
   }
 
@@ -112,7 +126,7 @@ function parseUserscriptMeta(content: string, filepath: string): ScriptMeta | nu
 
   const getAll = (key: string): string[] => {
     const matches = [...meta.matchAll(new RegExp(`// @${key}\\s+(.+)`, 'g'))]
-    return matches.map(m => m[1]?.trim() ?? '').filter(Boolean)
+    return matches.map((m) => m[1]?.trim() ?? '').filter(Boolean)
   }
 
   const name = get('name')
@@ -165,14 +179,16 @@ function parseBookmarks(content: string): Bookmark[] {
 
       // Validate URL format
       if (!isValidUrl(url)) {
-        console.warn(`⚠️ Skipping bookmark "${linkMatch[1]}": Invalid URL format`)
+        console.warn(
+          `⚠️ Skipping bookmark "${linkMatch[1]}": Invalid URL format`,
+        )
         continue
       }
 
       // Parse description and extract tags (format: description #tag1 #tag2)
       const rawDescription = linkMatch[3] ?? ''
       const tagMatches = rawDescription.match(/#[\w-]+/g)
-      const tags = tagMatches?.map(t => t.slice(1)) // Remove # prefix
+      const tags = tagMatches?.map((t) => t.slice(1)) // Remove # prefix
       const description = rawDescription.replace(/#[\w-]+/g, '').trim()
 
       const bookmark: Bookmark = {
@@ -200,7 +216,7 @@ async function main() {
   // Parse userscripts (skip invalid with warning)
   const files = await glob('scripts/**/*.user.js')
   const scripts = files
-    .filter(f => {
+    .filter((f) => {
       // Path traversal protection
       if (!isPathSafe(f)) {
         console.warn(`⚠️ Skipping ${f}: Path outside scripts directory`)
@@ -208,7 +224,7 @@ async function main() {
       }
       return true
     })
-    .map(f => {
+    .map((f) => {
       const content = readFileSync(f, 'utf-8')
       return parseUserscriptMeta(content, f)
     })
@@ -229,7 +245,9 @@ async function main() {
   // Check output size
   const outputSize = Buffer.byteLength(output, 'utf-8')
   if (outputSize > MAX_OUTPUT_SIZE) {
-    console.error(`❌ Output size (${(outputSize / 1024).toFixed(1)}KB) exceeds ${MAX_OUTPUT_SIZE / 1024}KB limit`)
+    console.error(
+      `❌ Output size (${(outputSize / 1024).toFixed(1)}KB) exceeds ${MAX_OUTPUT_SIZE / 1024}KB limit`,
+    )
     process.exit(1)
   }
 
@@ -237,7 +255,9 @@ async function main() {
   mkdirSync('public', { recursive: true })
   writeFileSync('public/scripts-index.json', output)
 
-  console.log(`✅ Generated index: ${scripts.length} scripts, ${bookmarks.length} bookmarks (${(outputSize / 1024).toFixed(1)}KB)`)
+  console.log(
+    `✅ Generated index: ${scripts.length} scripts, ${bookmarks.length} bookmarks (${(outputSize / 1024).toFixed(1)}KB)`,
+  )
 }
 
 main().catch(console.error)

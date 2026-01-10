@@ -1,20 +1,22 @@
 <script setup lang="ts">
-import { onMounted, computed, ref } from 'vue'
-import { useBookmarks } from '@/composables/useBookmarks'
-import { useSearch } from '@/composables/useSearch'
+import { ArrowUpDown } from 'lucide-vue-next'
+import { computed, onMounted, ref } from 'vue'
 import BookmarkCard from '@/components/BookmarkCard.vue'
 import SearchBar from '@/components/SearchBar.vue'
-import { ArrowUpDown } from 'lucide-vue-next'
+import { useBookmarks } from '@/composables/useBookmarks'
+import { useSearch } from '@/composables/useSearch'
 
 const { bookmarks, loading, error, fetchBookmarks } = useBookmarks()
 
 onMounted(fetchBookmarks)
 
 // Fuzzy search on name, description, category, and tags
-const { query: search, results: searched } = useSearch(
-  bookmarks,
-  ['name', 'description', 'category', 'tags']
-)
+const { query: search, results: searched } = useSearch(bookmarks, [
+  'name',
+  'description',
+  'category',
+  'tags',
+])
 
 // Sort options
 type SortOption = 'name' | 'category' | 'source'
@@ -33,8 +35,9 @@ const sorted = computed(() => {
     case 'name':
       return items.sort((a, b) => a.name.localeCompare(b.name))
     case 'source':
-      return items.sort((a, b) => (a.source ?? 'other').localeCompare(b.source ?? 'other'))
-    case 'category':
+      return items.sort((a, b) =>
+        (a.source ?? 'other').localeCompare(b.source ?? 'other'),
+      )
     default:
       return items.sort((a, b) => a.category.localeCompare(b.category))
   }
@@ -58,7 +61,7 @@ const groupedBookmarks = computed(() => {
 })
 
 const sortedGroupKeys = computed(() =>
-  Object.keys(groupedBookmarks.value).sort()
+  Object.keys(groupedBookmarks.value).sort(),
 )
 
 // Format group label

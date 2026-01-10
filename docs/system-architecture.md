@@ -1,6 +1,7 @@
 # System Architecture: UserJS Vue Userscript Manager
 
 ## Architecture Overview
+
 - Single-page application (SPA) built with Vue 3 Composition API
 - Vite as build tool and development server
 - Tailwind CSS for styling
@@ -9,6 +10,7 @@
 ## Component Architecture
 
 ### Composables
+
 - `useScripts`:
   - Manages script data retrieval
   - Handles error states
@@ -26,7 +28,7 @@
   - Provides category filtering
   - Implements error boundaries for search operations
 
-- `useDarkMode`: 
+- `useDarkMode`:
   - Manages dark mode toggle
   - Persists mode in localStorage
   - Provides reactive dark mode state
@@ -37,6 +39,7 @@
   - Provides `showBanner` computed and `hideBanner` function
 
 ### UI Components
+
 - `ScriptCard`: Renders individual script details
 - `BookmarkCard`: Displays bookmark information
 - `Header`: Application navigation
@@ -49,6 +52,7 @@
 - `ErrorBoundary`: Handles search operation errors
 
 ### Pages
+
 - `Home`: Script listing page
   - Displays paginated script list
   - Provides search and filtering capabilities
@@ -68,6 +72,7 @@
   - Provides navigation back to home
 
 ## Routing
+
 - Vue Router for client-side navigation
 - Dynamic page titles via `router.afterEach` hook and route meta
 - Title format: `{Page} - UserJS Store | Khuong Dev`
@@ -78,21 +83,25 @@
   - `Shift+D`: Toggle Dark Mode
 
 ## State Management
+
 - Composition API reactive state
 - localStorage for persistent settings
 - Minimal global state, component-level reactivity
 
 ## Browser Interaction
+
 - SSR-safe browser API usage
 - Graceful fallback for unsupported browsers
 - Minimal DOM manipulation
 
 ## Performance Considerations
+
 - Code-splitting via Vite
 - Lazy loading of components
 - Efficient reactivity with Vue 3
 
 ## SEO
+
 - Static meta tags in `index.html`:
   - Description, keywords, author, canonical URL
   - Open Graph tags (og:title, og:description, og:image, etc.)

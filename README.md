@@ -1,8 +1,39 @@
-# UserJS Store
+<p align="center">
+  <img src="public/og-image.svg" alt="UserJS Store" width="400">
+</p>
 
-A personal userscript hosting platform built with Vue 3 and Vite.
+<h1 align="center">UserJS Store</h1>
 
-**Live Site:** https://userjs.khuong.dev
+<p align="center">
+  <a href="https://github.com/lamngockhuong/userjs/actions/workflows/deploy.yml"><img src="https://github.com/lamngockhuong/userjs/actions/workflows/deploy.yml/badge.svg" alt="Deploy"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
+  <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-5.9-blue?logo=typescript&logoColor=white" alt="TypeScript"></a>
+  <a href="https://vuejs.org/"><img src="https://img.shields.io/badge/Vue-3.5-4FC08D?logo=vue.js&logoColor=white" alt="Vue"></a>
+  <a href="https://userjs.khuong.dev"><img src="https://img.shields.io/website?url=https%3A%2F%2Fuserjs.khuong.dev" alt="Website"></a>
+</p>
+
+<p align="center">
+  A personal userscript hosting platform built with Vue 3 and Vite.<br>
+  <a href="https://userjs.khuong.dev"><strong>Live Site »</strong></a>
+</p>
+
+## Preview
+
+### Home Page
+
+| Light Mode | Dark Mode |
+|------------|-----------|
+| ![Home Light](docs/images/home-light.png) | ![Home Dark](docs/images/home-dark.png) |
+
+### Script Detail
+
+| Code Preview | Documentation |
+|--------------|---------------|
+| ![Code Preview](docs/images/script-code.png) | ![Documentation](docs/images/script-docs.png) |
+
+### Bookmarks
+
+![Bookmarks](docs/images/bookmarks.png)
 
 ## Features
 
@@ -25,6 +56,8 @@ A personal userscript hosting platform built with Vue 3 and Vite.
 - Vue Router (hash mode)
 - Fuse.js (fuzzy search)
 - Shiki (syntax highlighting)
+- Biome (linting)
+- Prettier (markdown formatting)
 
 ## Development
 
@@ -40,6 +73,15 @@ pnpm build
 
 # Type check
 pnpm type-check
+
+# Lint code
+pnpm lint
+
+# Auto-fix lint issues
+pnpm lint:fix
+
+# Format all files
+pnpm format
 ```
 
 ## Adding Scripts

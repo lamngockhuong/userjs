@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue'
 import type { Script } from '@/types/script'
 
 const scripts = ref<Script[]>([])
@@ -23,21 +23,32 @@ export function useScripts() {
       scripts.value = data.scripts
       fetched.value = true
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to load scripts'
+      error.value =
+        err instanceof Error ? err.message : 'Failed to load scripts'
     } finally {
       loading.value = false
     }
   }
 
   const categories = computed(() =>
-    [...new Set(scripts.value.map(s => s.category))].sort()
+    [...new Set(scripts.value.map((s) => s.category))].sort(),
   )
 
   const getByCategory = (cat: string) =>
-    scripts.value.filter(s => s.category === cat)
+    scripts.value.filter((s) => s.category === cat)
 
   const getBySlug = (category: string, filename: string) =>
-    scripts.value.find(s => s.category === category && s.filename === filename)
+    scripts.value.find(
+      (s) => s.category === category && s.filename === filename,
+    )
 
-  return { scripts, loading, error, fetchScripts, categories, getByCategory, getBySlug }
+  return {
+    scripts,
+    loading,
+    error,
+    fetchScripts,
+    categories,
+    getByCategory,
+    getBySlug,
+  }
 }

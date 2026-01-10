@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { Check, Copy, Download, ExternalLink } from 'lucide-vue-next'
 import { ref } from 'vue'
 import type { Script } from '@/types/script'
-import { Download, ExternalLink, Copy, Check } from 'lucide-vue-next'
 
 defineProps<{ script: Script }>()
 
@@ -16,10 +16,14 @@ async function copyUrl(url: string) {
     await navigator.clipboard.writeText(url)
     copied.value = true
     copyError.value = false
-    setTimeout(() => { copied.value = false }, 2000)
+    setTimeout(() => {
+      copied.value = false
+    }, 2000)
   } catch {
     copyError.value = true
-    setTimeout(() => { copyError.value = false }, 2000)
+    setTimeout(() => {
+      copyError.value = false
+    }, 2000)
   }
 }
 </script>

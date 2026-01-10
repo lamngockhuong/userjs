@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { onMounted, ref, computed } from 'vue'
-import { useScripts } from '@/composables/useScripts'
-import { useSearch } from '@/composables/useSearch'
+import { computed, onMounted, ref } from 'vue'
 import ScriptCard from '@/components/ScriptCard.vue'
 import SearchBar from '@/components/SearchBar.vue'
+import { useScripts } from '@/composables/useScripts'
+import { useSearch } from '@/composables/useSearch'
 
 const { scripts, loading, error, fetchScripts, categories } = useScripts()
 const selectedCategory = ref('')
@@ -13,14 +13,15 @@ onMounted(fetchScripts)
 // Category filter first (more efficient to filter smaller set)
 const categoryFiltered = computed(() => {
   if (!selectedCategory.value) return scripts.value
-  return scripts.value.filter(s => s.category === selectedCategory.value)
+  return scripts.value.filter((s) => s.category === selectedCategory.value)
 })
 
 // Fuzzy search on category-filtered results
-const { query: search, results: filtered } = useSearch(
-  categoryFiltered,
-  ['name', 'description', 'matches']
-)
+const { query: search, results: filtered } = useSearch(categoryFiltered, [
+  'name',
+  'description',
+  'matches',
+])
 </script>
 
 <template>

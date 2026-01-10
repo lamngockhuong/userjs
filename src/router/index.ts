@@ -7,7 +7,7 @@ const routes = [
     path: '/',
     name: 'home',
     component: () => import('@/pages/Home.vue'),
-    meta: { title: BASE_TITLE }
+    meta: { title: BASE_TITLE },
   },
   {
     path: '/script/:category/:filename',
@@ -19,13 +19,13 @@ const routes = [
     path: '/bookmarks',
     name: 'bookmarks',
     component: () => import('@/pages/Bookmarks.vue'),
-    meta: { title: `Bookmarks - ${BASE_TITLE}` }
+    meta: { title: `Bookmarks - ${BASE_TITLE}` },
   },
   {
     path: '/:pathMatch(.*)*',
     name: 'not-found',
     component: () => import('@/pages/NotFound.vue'),
-    meta: { title: `Not Found - ${BASE_TITLE}` }
+    meta: { title: `Not Found - ${BASE_TITLE}` },
   },
 ]
 

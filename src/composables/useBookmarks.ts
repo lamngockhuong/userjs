@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue'
 import type { Bookmark } from '@/types/script'
 
 const bookmarks = ref<Bookmark[]>([])
@@ -23,14 +23,15 @@ export function useBookmarks() {
       bookmarks.value = data.bookmarks
       fetched.value = true
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to load bookmarks'
+      error.value =
+        err instanceof Error ? err.message : 'Failed to load bookmarks'
     } finally {
       loading.value = false
     }
   }
 
   const categories = computed(() =>
-    [...new Set(bookmarks.value.map(b => b.category))].sort()
+    [...new Set(bookmarks.value.map((b) => b.category))].sort(),
   )
 
   return { bookmarks, loading, error, fetchBookmarks, categories }

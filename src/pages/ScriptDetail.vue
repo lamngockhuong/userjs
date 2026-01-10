@@ -1,11 +1,55 @@
 <script setup lang="ts">
-import { onMounted, ref, computed, watch } from 'vue'
+import {
+  ArrowLeft,
+  Check,
+  Code,
+  Copy,
+  Download,
+  ExternalLink,
+  FileText,
+  History,
+} from 'lucide-vue-next'
+import { marked } from 'marked'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useScripts } from '@/composables/useScripts'
 import { BASE_TITLE } from '@/router'
-import { Download, ExternalLink, ArrowLeft, History, Code, Copy, Check, FileText } from 'lucide-vue-next'
-import { codeToHtml } from 'shiki'
-import { marked } from 'marked'
+
+// Lazy-loaded Shiki highlighter with minimal bundle (only JS + github-dark)
+let highlighterPromise: ReturnType<typeof createMinimalHighlighter> | null =
+  null
+
+async function createMinimalHighlighter() {
+  const [
+    { createHighlighterCore },
+    { createJavaScriptRegexEngine },
+    javascript,
+    githubDark,
+  ] = await Promise.all([
+    import('shiki/core'),
+    import('shiki/engine/javascript'),
+    import('@shikijs/langs/javascript').then((m) => m.default),
+    import('@shikijs/themes/github-dark').then((m) => m.default),
+  ])
+
+  const highlighter = await createHighlighterCore({
+    themes: [githubDark],
+    langs: [javascript],
+    engine: createJavaScriptRegexEngine(),
+  })
+
+  return {
+    codeToHtml: (code: string, options: { lang: string; theme: string }) =>
+      highlighter.codeToHtml(code, options),
+  }
+}
+
+function getHighlighter() {
+  if (!highlighterPromise) {
+    highlighterPromise = createMinimalHighlighter()
+  }
+  return highlighterPromise
+}
 
 const route = useRoute()
 const { fetchScripts, getBySlug } = useScripts()
@@ -33,6 +77,7 @@ const highlightedCode = ref('')
 const loadingCode = ref(false)
 const codeCopied = ref(false)
 const copyError = ref(false)
+const codePreviewRef = ref<HTMLElement | null>(null)
 const readmeHtml = ref('')
 const loadingReadme = ref(false)
 
@@ -60,13 +105,17 @@ const script = computed(() => {
 })
 
 // Update page title when script loads
-watch(script, (s) => {
-  document.title = s ? `${s.name} - ${BASE_TITLE}` : `Script - ${BASE_TITLE}`
-  // Fetch readme if available
-  if (s?.readmeUrl) {
-    fetchReadme(s.readmeUrl)
-  }
-}, { immediate: true })
+watch(
+  script,
+  (s) => {
+    document.title = s ? `${s.name} - ${BASE_TITLE}` : `Script - ${BASE_TITLE}`
+    // Fetch readme if available
+    if (s?.readmeUrl) {
+      fetchReadme(s.readmeUrl)
+    }
+  },
+  { immediate: true },
+)
 
 async function fetchReadme(remoteUrl: string) {
   if (!script.value) return
@@ -124,7 +173,7 @@ async function fetchGitHistory() {
     }
 
     const res = await fetch(
-      `https://api.github.com/repos/lamngockhuong/userjs/commits?path=scripts/${script.value.category}/${script.value.filename}&per_page=10`
+      `https://api.github.com/repos/lamngockhuong/userjs/commits?path=scripts/${script.value.category}/${script.value.filename}&per_page=10`,
     )
 
     // Handle rate limiting
@@ -136,18 +185,23 @@ async function fetchGitHistory() {
     if (res.ok) {
       const data = await res.json()
       if (Array.isArray(data)) {
-        commits.value = data.map((c: { sha: string; commit: { message: string; author: { date: string } } }) => ({
-          sha: c.sha.slice(0, 7),
-          message: c.commit.message?.split('\n')[0] ?? '',
-          date: new Date(c.commit.author.date).toLocaleDateString(),
-        }))
+        commits.value = data.map(
+          (c: {
+            sha: string
+            commit: { message: string; author: { date: string } }
+          }) => ({
+            sha: c.sha.slice(0, 7),
+            message: c.commit.message?.split('\n')[0] ?? '',
+            date: new Date(c.commit.author.date).toLocaleDateString(),
+          }),
+        )
 
         // Cache with timestamp
         if (typeof window !== 'undefined') {
           try {
             const cacheData: CachedData = {
               commits: commits.value,
-              timestamp: Date.now()
+              timestamp: Date.now(),
             }
             localStorage.setItem(cacheKey, JSON.stringify(cacheData))
           } catch {
@@ -165,6 +219,13 @@ async function fetchGitHistory() {
 
 async function toggleCodePreview() {
   showCode.value = !showCode.value
+
+  // Scroll to code preview when showing
+  if (showCode.value) {
+    await nextTick()
+    codePreviewRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   if (showCode.value && !sourceCode.value && script.value) {
     loadingCode.value = true
     try {
@@ -177,10 +238,11 @@ async function toggleCodePreview() {
       if (!res.ok) throw new Error('Failed to fetch')
       sourceCode.value = await res.text()
 
-      // Generate highlighted HTML via Shiki (trusted source)
-      const html = await codeToHtml(sourceCode.value, {
+      // Generate highlighted HTML via Shiki (lazy-loaded, trusted source)
+      const { codeToHtml } = await getHighlighter()
+      const html = codeToHtml(sourceCode.value, {
         lang: 'javascript',
-        theme: 'github-dark'
+        theme: 'github-dark',
       })
 
       // Basic validation: Shiki output starts with <pre
@@ -191,7 +253,8 @@ async function toggleCodePreview() {
       }
     } catch {
       sourceCode.value = '// Failed to load source code'
-      highlightedCode.value = '<pre class="shiki"><code>// Failed to load source code</code></pre>'
+      highlightedCode.value =
+        '<pre class="shiki"><code>// Failed to load source code</code></pre>'
     } finally {
       loadingCode.value = false
     }
@@ -204,10 +267,14 @@ async function copyCode() {
     await navigator.clipboard.writeText(sourceCode.value)
     codeCopied.value = true
     copyError.value = false
-    setTimeout(() => { codeCopied.value = false }, 2000)
+    setTimeout(() => {
+      codeCopied.value = false
+    }, 2000)
   } catch {
     copyError.value = true
-    setTimeout(() => { copyError.value = false }, 2000)
+    setTimeout(() => {
+      copyError.value = false
+    }, 2000)
   }
 }
 </script>
@@ -274,7 +341,7 @@ async function copyCode() {
       </section>
 
       <!-- Code Preview Panel -->
-      <section v-if="showCode" class="border rounded-lg dark:border-slate-700 overflow-hidden" aria-label="Source code preview">
+      <section v-if="showCode" ref="codePreviewRef" class="border rounded-lg dark:border-slate-700 overflow-hidden" aria-label="Source code preview">
         <div class="flex justify-between items-center px-4 py-2 bg-slate-100 dark:bg-slate-800 border-b dark:border-slate-700">
           <span class="text-sm font-medium font-mono">{{ script.filename }}</span>
           <button @click="copyCode"

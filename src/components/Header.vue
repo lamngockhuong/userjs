@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useDarkMode } from '@/composables/useDarkMode'
 import { Moon, Sun } from 'lucide-vue-next'
+import { useDarkMode } from '@/composables/useDarkMode'
 
 const { isDark, toggle } = useDarkMode()
 </script>

@@ -1,6 +1,7 @@
 # Codebase Summary
 
 ## Project Structure
+
 ```
 userjs/
 │
@@ -41,6 +42,7 @@ userjs/
 ```
 
 ## Key Technical Characteristics
+
 - **Framework**: Vue 3 with Composition API
 - **Build Tool**: Vite 7.3.1
 - **Language**: TypeScript (Strict Mode)
@@ -48,6 +50,7 @@ userjs/
 - **Styling**: Tailwind CSS v4
 
 ## Feature Highlights
+
 - Dark Mode Support
 - Accessibility Features
 - Error Boundary Implementation
@@ -80,14 +83,22 @@ userjs/
 - Full-Text Search Capabilities
 
 ## Dependency Highlights
-- @vueuse/core: Utility Composables
+
 - fuse.js: Fuzzy Search
 - lucide-vue-next: Icon Library
-- shiki: Syntax Highlighting
+- shiki: Syntax Highlighting (fine-grained bundle)
+- marked: Markdown Rendering
 - tsx: TypeScript Execution
 
+## Dev Dependencies
+
+- @biomejs/biome: Linting & Formatting
+- prettier: Markdown Formatting
+
 ## Build Scripts
+
 ### generate-index.ts
+
 - Parses User Script Metadata from `.user.js` files
 - Detects optional `.md` readme files (e.g., `script.md` for `script.user.js`)
 - Reads `BOOKMARKS.md` for additional script information
@@ -99,11 +110,24 @@ userjs/
   - URL Validation
 
 ### NPM Scripts
+
 - `generate-index`: Manually trigger script indexing
 - `predev`: Generates script index before development
 - `prebuild`: Generates script index before production build
+- `lint`: Check code with Biome
+- `lint:fix`: Auto-fix lint issues
+- `format:md`: Format markdown files
+- `format`: Run lint:fix + format:md
 
 ## Configuration Specifics
+
 - TypeScript: `noUncheckedIndexedAccess` enabled
 - Vue Router: Hash Mode for compatibility
 - Tailwind CSS: CSS-first configuration
+
+## Build Optimization
+
+- **Shiki fine-grained bundle**: Only JavaScript lang + github-dark theme loaded
+- **Lazy-loaded syntax highlighting**: Shiki loads on-demand when "View Code" clicked
+- **Dist size**: ~820KB (optimized from 10MB)
+- **Code splitting**: Router-based lazy loading for pages
