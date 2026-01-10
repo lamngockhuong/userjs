@@ -15,11 +15,13 @@
   - Manages script data retrieval
   - Handles error states
   - Provides reactive script list
+  - Cache-busting via build timestamp query param
 
 - `useBookmarks`:
   - Manages bookmark data
   - Provides CRUD operations
   - Handles bookmark state management
+  - Cache-busting via build timestamp query param
 
 - `useSearch`:
   - Implements Fuse.js fuzzy search

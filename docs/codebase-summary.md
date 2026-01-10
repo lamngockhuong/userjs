@@ -131,3 +131,4 @@ userjs/
 - **Lazy-loaded syntax highlighting**: Shiki loads on-demand when "View Code" clicked
 - **Dist size**: ~820KB (optimized from 10MB)
 - **Code splitting**: Router-based lazy loading for pages
+- **Cache-busting**: Build timestamp injected via Vite `define` and appended to `scripts-index.json` fetch URL to bypass CDN/browser cache after deployments
