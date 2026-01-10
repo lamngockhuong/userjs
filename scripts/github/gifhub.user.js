@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name         GIFHub
 // @namespace    https://userjs.khuong.dev
-// @version      1.1.1
-// @description  Insert GIFs into GitHub comments, PRs, issues, and discussions
+// @version      1.2.0
+// @description  Insert GIFs into GitHub comments, PRs, issues, discussions, and gists
 // @author       Lam Ngoc Khuong
 // @match        https://github.com/*
+// @match        https://gist.github.com/*
 // @grant        GM_xmlhttpRequest
 // @grant        GM.xmlHttpRequest
 // @connect      github-gifs.aldilaff6545.workers.dev

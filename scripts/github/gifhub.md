@@ -1,6 +1,6 @@
 # GIFHub
 
-Insert GIFs directly into GitHub comments, PRs, issues, and discussions with a simple click.
+Insert GIFs directly into GitHub comments, PRs, issues, discussions, and gists with a simple click.
 
 ## Features
 
@@ -25,6 +25,7 @@ Insert GIFs directly into GitHub comments, PRs, issues, and discussions with a s
 - Discussion comments
 - Code review comments
 - Commit comments
+- Gist comments (gist.github.com)
 
 ## Requirements
 
@@ -41,6 +42,10 @@ Insert GIFs directly into GitHub comments, PRs, issues, and discussions with a s
 | `@connect github-gifs.aldilaff6545.workers.dev` | GIF search API endpoint           |
 
 ## Changelog
+
+### v1.2.0
+
+- Added support for gist.github.com
 
 ### v1.1.1
 
