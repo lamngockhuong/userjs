@@ -43,9 +43,9 @@ Insert GIFs directly into GitHub comments, PRs, issues, discussions, and gists w
 
 ## Changelog
 
-### v1.2.1
+### v1.2.2
 
-- Added script icon
+- Fixed script icon (film strip with GIF text)
 
 ### v1.2.0
 
