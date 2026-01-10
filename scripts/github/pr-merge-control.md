@@ -29,5 +29,7 @@ Install the script and navigate to any GitHub PR page. When you click the merge 
 
 ## Changelog
 
+- **v1.2** - Fix main merge button not being disabled
+- **v1.1** - Fix CSS specificity issues with inline styles
 - **v1.0** - Updated for GitHub's new React UI (2024+)
 - **v0.7** - Initial version for classic GitHub UI

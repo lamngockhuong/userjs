@@ -1,8 +1,21 @@
 {
   "scripts": [
     {
+      "name": "Hello World",
+      "version": "1.0.0",
+      "description": "A sample userscript that logs a greeting message",
+      "author": "Lam Ngoc Khuong",
+      "category": "general",
+      "filename": "hello-world.user.js",
+      "matches": [
+        "https://*/*"
+      ],
+      "installUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/general/hello-world.user.js",
+      "sourceUrl": "https://github.com/lamngockhuong/userjs/blob/main/scripts/general/hello-world.user.js"
+    },
+    {
       "name": "PR Merge Control",
-      "version": "1.1",
+      "version": "1.2",
       "description": "Automatically disable regular/squash merge on target branch for GitHub PRs",
       "author": "Lam Ngoc Khuong",
       "category": "github",
@@ -16,30 +29,18 @@
     },
     {
       "name": "GIFHub",
-      "version": "1.1.1",
-      "description": "Insert GIFs into GitHub comments, PRs, issues, and discussions",
+      "version": "1.2.0",
+      "description": "Insert GIFs into GitHub comments, PRs, issues, discussions, and gists",
       "author": "Lam Ngoc Khuong",
       "category": "github",
       "filename": "gifhub.user.js",
       "matches": [
-        "https://github.com/*"
+        "https://github.com/*",
+        "https://gist.github.com/*"
       ],
       "installUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/github/gifhub.user.js",
       "sourceUrl": "https://github.com/lamngockhuong/userjs/blob/main/scripts/github/gifhub.user.js",
       "readmeUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/github/gifhub.md"
-    },
-    {
-      "name": "Hello World",
-      "version": "1.0.0",
-      "description": "A sample userscript that logs a greeting message",
-      "author": "Lam Ngoc Khuong",
-      "category": "general",
-      "filename": "hello-world.user.js",
-      "matches": [
-        "https://*/*"
-      ],
-      "installUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/general/hello-world.user.js",
-      "sourceUrl": "https://github.com/lamngockhuong/userjs/blob/main/scripts/general/hello-world.user.js"
     }
   ],
   "bookmarks": [
