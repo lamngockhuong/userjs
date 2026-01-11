@@ -1,6 +1,7 @@
 # Change Translate Attribute
 
-Automatically changes the `translate="no"` attribute to `translate="yes"` on HTML pages, enabling browser translation features on sites that disable it.
+Automatically changes the `translate="no"` attribute to `translate="yes"` on HTML pages, enabling
+browser translation features on sites that disable it.
 
 ## Features
 
@@ -10,7 +11,8 @@ Automatically changes the `translate="no"` attribute to `translate="yes"` on HTM
 
 ## Usage
 
-Install the script and it will automatically run on all pages. When a page has `translate="no"` set, the script enables translation by changing it to `translate="yes"`.
+Install the script and it will automatically run on all pages. When a page has `translate="no"` set,
+the script enables translation by changing it to `translate="yes"`.
 
 ## Notes
 

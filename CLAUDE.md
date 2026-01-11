@@ -60,7 +60,9 @@ public/
 
 ### Adding Userscripts
 
-See [docs/userscript-guidelines.md](docs/userscript-guidelines.md) for detailed requirements including:
+See [docs/userscript-guidelines.md](docs/userscript-guidelines.md) for detailed requirements
+including:
+
 - Required metadata fields
 - Naming conventions
 - Documentation template

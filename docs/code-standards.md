@@ -73,3 +73,64 @@
 - Prose wrap: always
 - Print width: 100
 - Only processes: `**/*.md` (except BOOKMARKS.md)
+
+## E2E Testing
+
+### Overview
+
+- **Framework**: Playwright
+- **Test location**: `e2e/` directory
+- **Config**: `playwright.config.ts`
+
+### Running Tests
+
+```bash
+pnpm test:e2e          # Run all tests (headless)
+pnpm test:e2e:ui       # Interactive UI mode
+pnpm test:e2e:headed   # Run with visible browser
+pnpm test:e2e:report   # View HTML report
+```
+
+### Running Specific Browser
+
+```bash
+pnpm test:e2e --project=chromium
+pnpm test:e2e --project=firefox
+pnpm test:e2e --project=webkit
+```
+
+### Test Structure
+
+```
+e2e/
+├── home.spec.ts          # Home page tests
+├── script-detail.spec.ts # Script detail page tests
+├── bookmarks.spec.ts     # Bookmarks page tests
+├── navigation.spec.ts    # Routing & keyboard shortcuts
+└── dark-mode.spec.ts     # Theme toggle tests
+```
+
+### Writing Tests
+
+```typescript
+import { expect, test } from "@playwright/test";
+
+test.describe("Feature", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/");
+  });
+
+  test("should do something", async ({ page }) => {
+    await expect(page.locator("h1")).toBeVisible();
+  });
+});
+```
+
+### CI Integration
+
+E2E tests can be triggered manually via GitHub Actions:
+
+1. Go to **Actions** → **E2E Tests**
+2. Click **Run workflow**
+3. Select browser (chromium/firefox/webkit)
+4. Test report uploaded as artifact (7-day retention)

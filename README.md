@@ -22,14 +22,14 @@
 
 ### Home Page
 
-| Light Mode | Dark Mode |
-|------------|-----------|
+| Light Mode                                | Dark Mode                               |
+| ----------------------------------------- | --------------------------------------- |
 | ![Home Light](docs/images/home-light.png) | ![Home Dark](docs/images/home-dark.png) |
 
 ### Script Detail
 
-| Code Preview | Documentation |
-|--------------|---------------|
+| Code Preview                                 | Documentation                                 |
+| -------------------------------------------- | --------------------------------------------- |
 | ![Code Preview](docs/images/script-code.png) | ![Documentation](docs/images/script-docs.png) |
 
 ### Bookmarks

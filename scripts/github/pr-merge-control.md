@@ -25,7 +25,8 @@ Enforces consistent merge strategy:
 
 ## Usage
 
-Install the script and navigate to any GitHub PR page. When you click the merge dropdown, options will be automatically restricted based on the target branch.
+Install the script and navigate to any GitHub PR page. When you click the merge dropdown, options
+will be automatically restricted based on the target branch.
 
 ## Changelog
 

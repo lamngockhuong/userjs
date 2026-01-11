@@ -35,10 +35,18 @@ userjs/
 ├── scripts/           # Project Utility Scripts
 │   └── general/       # Sample User Scripts
 │
+├── e2e/               # Playwright E2E Tests
+│   ├── home.spec.ts
+│   ├── script-detail.spec.ts
+│   ├── bookmarks.spec.ts
+│   ├── navigation.spec.ts
+│   └── dark-mode.spec.ts
+│
 ├── config/            # Configuration Files
 │
-├── index.html        # HTML Entry Point
-└── vite.config.ts    # Vite Build Configuration
+├── index.html         # HTML Entry Point
+├── vite.config.ts     # Vite Build Configuration
+└── playwright.config.ts  # Playwright Test Configuration
 ```
 
 ## Key Technical Characteristics
@@ -94,6 +102,8 @@ userjs/
 
 - @biomejs/biome: Linting & Formatting
 - prettier: Markdown Formatting
+- @playwright/test: E2E Testing Framework
+- playwright: Browser Automation
 
 ## Build Scripts
 
@@ -118,6 +128,10 @@ userjs/
 - `lint:fix`: Auto-fix lint issues
 - `format:md`: Format markdown files
 - `format`: Run lint:fix + format:md
+- `test:e2e`: Run Playwright E2E tests
+- `test:e2e:ui`: Run tests in interactive UI mode
+- `test:e2e:headed`: Run tests with visible browser
+- `test:e2e:report`: View HTML test report
 
 ## Configuration Specifics
 
@@ -131,4 +145,5 @@ userjs/
 - **Lazy-loaded syntax highlighting**: Shiki loads on-demand when "View Code" clicked
 - **Dist size**: ~820KB (optimized from 10MB)
 - **Code splitting**: Router-based lazy loading for pages
-- **Cache-busting**: Build timestamp injected via Vite `define` and appended to `scripts-index.json` fetch URL to bypass CDN/browser cache after deployments
+- **Cache-busting**: Build timestamp injected via Vite `define` and appended to `scripts-index.json`
+  fetch URL to bypass CDN/browser cache after deployments
