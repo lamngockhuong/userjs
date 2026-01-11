@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { type BrowserName, expect, test } from '@playwright/test'
 
 test.describe('Script Detail Page', () => {
   test.beforeEach(async ({ page }) => {
@@ -71,9 +71,21 @@ test.describe('Script Detail Page', () => {
     await expect(codePreview).not.toBeVisible()
   })
 
-  test('should copy code to clipboard', async ({ page, context }) => {
-    // Grant clipboard permissions
-    await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  test('should copy code to clipboard', async ({
+    page,
+    context,
+    browserName,
+  }) => {
+    // Skip on WebKit - clipboard API not fully supported
+    test.skip(
+      browserName === ('webkit' as BrowserName),
+      'Clipboard API not supported in WebKit',
+    )
+
+    // Grant clipboard permissions (Chromium only - Firefox doesn't support this API)
+    if (browserName === ('chromium' as BrowserName)) {
+      await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+    }
 
     // Open code preview
     await page.getByRole('button', { name: /view code/i }).click()
