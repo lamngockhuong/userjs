@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Markdown Viewer
 // @namespace    https://userjs.khuong.dev
-// @version      2.0.0
+// @version      3.0.0
 // @description  Render markdown files from local or raw URLs with full GFM support
 // @author       Lam Ngoc Khuong
 // @updateURL    https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/general/markdown-viewer.user.js
@@ -607,49 +607,345 @@
     setPreference(PREFS.DISPLAY_MODE, mode);
     setPreference(PREFS.LAST_STATE, 'open');
 
-    // Render markdown (Phase 3 will implement full rendering)
-    const renderedHTML = renderMarkdownBasic(state.rawContent);
+    // Show loading indicator
+    showLoading();
 
+    // Render markdown with full plugin support
+    const renderedHTML = renderMarkdown(state.rawContent);
+
+    // Hide loading
+    hideLoading();
+
+    let container;
     switch (mode) {
       case 'replace':
-        createReplaceContainer(renderedHTML);
+        container = createReplaceContainer(renderedHTML);
         break;
       case 'split':
-        createSplitContainer(state.rawContent, renderedHTML);
+        container = createSplitContainer(state.rawContent, renderedHTML);
         break;
       case 'modal':
-        createModalContainer(renderedHTML);
+        container = createModalContainer(renderedHTML);
         break;
     }
 
     // Setup keyboard shortcuts
     setupKeyboardShortcuts();
+
+    // Create and update TOC sidebar
+    createTocSidebar();
+    const contentEl = document.querySelector('.mdv-content');
+    if (contentEl) {
+      const headings = extractHeadings(contentEl);
+      updateTocSidebar(headings);
+      if (headings.length > 0) {
+        showTocSidebar();
+      }
+    }
+  }
+
+  // ==========================================================================
+  // Content Detection Utilities
+  // ==========================================================================
+
+  /**
+   * Check if content contains math expressions
+   */
+  function hasMath(content) {
+    // Block: $$...$$ or inline: $...$
+    return /\$\$.+?\$\$/s.test(content) || /(?<!\$)\$(?!\$).+?(?<!\$)\$(?!\$)/s.test(content);
   }
 
   /**
-   * Basic markdown rendering (placeholder for Phase 3)
+   * Check if content contains footnotes
    */
-  function renderMarkdownBasic(raw) {
-    // Check if markdown-it is available
-    if (typeof unsafeWindow.markdownit === 'function') {
-      try {
-        const md = unsafeWindow.markdownit({
-          html: true,
-          linkify: true,
-          typographer: true
-        });
-        const rendered = md.render(raw);
-        // Sanitize with DOMPurify if available
-        if (unsafeWindow.DOMPurify && typeof unsafeWindow.DOMPurify.sanitize === 'function') {
-          return unsafeWindow.DOMPurify.sanitize(rendered);
+  function hasFootnotes(content) {
+    return /\[\^.+?\]/.test(content);
+  }
+
+  // ==========================================================================
+  // Markdown Rendering (Phase 3)
+  // ==========================================================================
+
+  // Render cache for performance
+  const renderCache = new Map();
+  let mdInstance = null;
+
+  /**
+   * Setup markdown-it instance with all available plugins
+   */
+  function setupMarkdownIt(raw) {
+    const needsMath = hasMath(raw);
+
+    // Create markdown-it instance with highlight.js integration
+    const md = unsafeWindow.markdownit({
+      html: true,
+      linkify: true,
+      typographer: true,
+      highlight: function(str, lang) {
+        // Use highlight.js if available
+        if (lang && unsafeWindow.hljs) {
+          try {
+            // Try specific language first
+            if (unsafeWindow.hljs.getLanguage(lang)) {
+              return unsafeWindow.hljs.highlight(str, { language: lang }).value;
+            }
+            // Fallback to auto-detect
+            return unsafeWindow.hljs.highlightAuto(str).value;
+          } catch (e) {
+            console.warn('[Markdown Viewer] Highlight error:', e);
+          }
         }
-        return rendered;
-      } catch (err) {
-        console.error('[Markdown Viewer] Render error:', err);
+        return ''; // Use default escaping
       }
+    });
+
+    // Add footnotes plugin
+    if (unsafeWindow.markdownitFootnote) {
+      md.use(unsafeWindow.markdownitFootnote);
     }
-    // Fallback: escape HTML and wrap in pre
-    return `<pre style="white-space:pre-wrap">${escapeHTML(raw)}</pre>`;
+
+    // Add anchor plugin for heading IDs
+    if (unsafeWindow.markdownItAnchor) {
+      md.use(unsafeWindow.markdownItAnchor, {
+        permalink: unsafeWindow.markdownItAnchor.permalink?.linkInsideHeader?.({
+          symbol: '🔗',
+          placement: 'before'
+        }) || false,
+        slugify: slugify
+      });
+    }
+
+    // Add math support with KaTeX
+    if (needsMath && unsafeWindow.texmath && unsafeWindow.katex) {
+      md.use(unsafeWindow.texmath, {
+        engine: unsafeWindow.katex,
+        delimiters: 'dollars',
+        katexOptions: {
+          throwOnError: false,
+          displayMode: false
+        }
+      });
+    }
+
+    return md;
+  }
+
+  /**
+   * Generate slug from text
+   */
+  function slugify(str) {
+    return str
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/[^\w\u4e00-\u9fff\-]+/g, '') // Keep CJK characters
+      .replace(/\-\-+/g, '-');
+  }
+
+  /**
+   * Render markdown to HTML with full plugin support
+   */
+  function renderMarkdown(raw) {
+    // Check cache
+    const cacheKey = raw.length + ':' + raw.substring(0, 100);
+    if (renderCache.has(cacheKey)) {
+      return renderCache.get(cacheKey);
+    }
+
+    // Check if markdown-it is available
+    if (typeof unsafeWindow.markdownit !== 'function') {
+      return `<pre style="white-space:pre-wrap">${escapeHTML(raw)}</pre>`;
+    }
+
+    try {
+      // Setup markdown-it with plugins
+      mdInstance = setupMarkdownIt(raw);
+
+      // Render markdown
+      let html = mdInstance.render(raw);
+
+      // Sanitize with DOMPurify
+      if (unsafeWindow.DOMPurify) {
+        const purify = typeof unsafeWindow.DOMPurify.sanitize === 'function'
+          ? unsafeWindow.DOMPurify
+          : unsafeWindow.DOMPurify(window); // Factory pattern
+
+        html = purify.sanitize(html, {
+          ADD_TAGS: ['math', 'mrow', 'mi', 'mo', 'mn', 'msup', 'msub', 'mfrac', 'semantics', 'annotation', 'mtext', 'mspace', 'mover', 'munder'],
+          ADD_ATTR: ['xmlns', 'encoding', 'mathvariant', 'displaystyle', 'scriptlevel'],
+          ALLOW_DATA_ATTR: true
+        });
+      }
+
+      // Cache result
+      renderCache.set(cacheKey, html);
+      return html;
+    } catch (err) {
+      console.error('[Markdown Viewer] Render error:', err);
+      return `<pre style="white-space:pre-wrap">${escapeHTML(raw)}</pre>`;
+    }
+  }
+
+  // ==========================================================================
+  // TOC Sidebar
+  // ==========================================================================
+
+  /**
+   * Create TOC sidebar
+   */
+  function createTocSidebar() {
+    // Remove existing
+    const existing = document.getElementById(UI_IDS.TOC);
+    if (existing) existing.remove();
+
+    const sidebar = document.createElement('div');
+    sidebar.id = UI_IDS.TOC;
+    Object.assign(sidebar.style, {
+      position: 'fixed',
+      top: '80px',
+      left: '20px',
+      width: '220px',
+      maxHeight: 'calc(100vh - 160px)',
+      overflow: 'auto',
+      background: '#fff',
+      borderRadius: '8px',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+      zIndex: '999995',
+      display: 'none',
+      fontSize: '13px'
+    });
+
+    sidebar.innerHTML = `
+      <div class="mdv-toc-header" style="padding:12px 16px;border-bottom:1px solid #e2e8f0;font-weight:600;display:flex;justify-content:space-between;align-items:center">
+        <span>Contents</span>
+        <button class="mdv-toc-toggle" style="border:none;background:none;cursor:pointer;font-size:12px;color:#718096">▼</button>
+      </div>
+      <nav class="mdv-toc-content" style="padding:8px 0" aria-label="Table of contents"></nav>
+    `;
+
+    // Toggle collapse
+    const toggle = sidebar.querySelector('.mdv-toc-toggle');
+    const content = sidebar.querySelector('.mdv-toc-content');
+    let collapsed = false;
+
+    toggle.addEventListener('click', () => {
+      collapsed = !collapsed;
+      content.style.display = collapsed ? 'none' : 'block';
+      toggle.textContent = collapsed ? '▶' : '▼';
+    });
+
+    document.body.appendChild(sidebar);
+    return sidebar;
+  }
+
+  /**
+   * Extract headings from rendered content
+   */
+  function extractHeadings(container) {
+    const headings = [];
+    container.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(h => {
+      const id = h.id || slugify(h.textContent);
+      if (!h.id) h.id = id;
+      headings.push({
+        level: parseInt(h.tagName[1]),
+        text: h.textContent.replace(/^🔗\s*/, ''),
+        id: id
+      });
+    });
+    return headings;
+  }
+
+  /**
+   * Update TOC sidebar with headings
+   */
+  function updateTocSidebar(headings) {
+    const sidebar = document.getElementById(UI_IDS.TOC);
+    if (!sidebar) return;
+
+    const content = sidebar.querySelector('.mdv-toc-content');
+    if (!headings || headings.length === 0) {
+      content.innerHTML = '<p style="padding:8px 16px;color:#718096;margin:0">No headings</p>';
+      return;
+    }
+
+    const minLevel = Math.min(...headings.map(h => h.level));
+    const html = headings.map(h => {
+      const indent = (h.level - minLevel) * 12;
+      return `<a href="#${h.id}" class="mdv-toc-link" style="display:block;padding:6px 16px 6px ${16 + indent}px;color:#4a5568;text-decoration:none;border-left:2px solid transparent">${escapeHTML(h.text)}</a>`;
+    }).join('');
+
+    content.innerHTML = html;
+
+    // Add click handlers
+    content.querySelectorAll('.mdv-toc-link').forEach(link => {
+      link.addEventListener('mouseenter', () => {
+        link.style.background = '#f7fafc';
+        link.style.borderLeftColor = '#3182ce';
+      });
+      link.addEventListener('mouseleave', () => {
+        link.style.background = 'transparent';
+        link.style.borderLeftColor = 'transparent';
+      });
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const target = document.getElementById(link.getAttribute('href').slice(1));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+  }
+
+  /**
+   * Show/hide TOC sidebar
+   */
+  function showTocSidebar() {
+    const sidebar = document.getElementById(UI_IDS.TOC);
+    if (sidebar) sidebar.style.display = 'block';
+  }
+
+  function hideTocSidebar() {
+    const sidebar = document.getElementById(UI_IDS.TOC);
+    if (sidebar) sidebar.style.display = 'none';
+  }
+
+  // ==========================================================================
+  // Loading Indicator
+  // ==========================================================================
+
+  /**
+   * Show loading indicator
+   */
+  function showLoading() {
+    const existing = document.getElementById('mdv-loader');
+    if (existing) return;
+
+    const loader = document.createElement('div');
+    loader.id = 'mdv-loader';
+    Object.assign(loader.style, {
+      position: 'fixed',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      zIndex: '999999',
+      padding: '16px 32px',
+      borderRadius: '8px',
+      background: '#fff',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+      fontSize: '14px',
+      color: '#4a5568'
+    });
+    loader.textContent = 'Rendering...';
+    document.body.appendChild(loader);
+  }
+
+  /**
+   * Hide loading indicator
+   */
+  function hideLoading() {
+    const loader = document.getElementById('mdv-loader');
+    if (loader) loader.remove();
   }
 
   /**
@@ -744,8 +1040,8 @@
    * Close the viewer and restore original content
    */
   function closeViewer() {
-    // Remove all containers
-    [UI_IDS.REPLACE, UI_IDS.SPLIT, UI_IDS.MODAL].forEach(id => {
+    // Remove all containers including TOC
+    [UI_IDS.REPLACE, UI_IDS.SPLIT, UI_IDS.MODAL, UI_IDS.TOC].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.remove();
     });
@@ -990,7 +1286,7 @@
       setDisplayMode(lastMode);
     }
 
-    console.log('[Markdown Viewer] v2.0.0 Initialized (Phase 2 UI)');
+    console.log('[Markdown Viewer] v3.0.0 Initialized (Phase 3 Rendering)');
   }
 
   // ==========================================================================
