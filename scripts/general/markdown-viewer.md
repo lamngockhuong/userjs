@@ -80,6 +80,17 @@ For `file://` URLs to work, enable file access in your browser:
 - Math renders only when content contains `$` expressions
 - Uses @resource for CSP-safe dependency loading
 
+## Known Limitations
+
+### Chrome + GitHub Raw URLs
+
+Chrome's strict sandbox blocks userscript managers on `raw.githubusercontent.com`. The script won't
+run.
+
+**Workaround:** Use Firefox for GitHub raw URLs.
+
+Other sources (file://, GitLab, Bitbucket, Gist) work fine on Chrome.
+
 ## Dependencies
 
 Loaded from CDN (jsdelivr) via @resource:
