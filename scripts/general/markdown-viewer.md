@@ -15,9 +15,9 @@ Render markdown files from local (file://) or raw URLs with full GFM support.
 - Inline TOC via `[[toc]]` placeholder
 - Auto-generated TOC sidebar
 - Footnotes support
-- Keyboard shortcuts
+- Keyboard shortcuts with help modal (`?`)
 - Position & preferences persist
-- CSP-safe: works on GitHub raw URLs
+- CSP-safe: works on GitHub raw URLs (FontFace API for fonts)
 
 ## Supported URLs
 
@@ -37,11 +37,12 @@ Render markdown files from local (file://) or raw URLs with full GFM support.
 
 ### Keyboard Shortcuts
 
-| Shortcut       | Action        |
-| -------------- | ------------- |
-| `Ctrl+Shift+M` | Toggle viewer |
-| `Ctrl+Shift+T` | Cycle theme   |
-| `ESC`          | Close viewer  |
+| Shortcut       | Action                    |
+| -------------- | ------------------------- |
+| `?`            | Show keyboard help        |
+| `Ctrl+Shift+M` | Toggle viewer             |
+| `Ctrl+Shift+T` | Cycle theme               |
+| `ESC`          | Close help / Close viewer |
 
 ### Display Modes
 

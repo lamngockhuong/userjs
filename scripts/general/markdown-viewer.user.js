@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Markdown Viewer
 // @namespace    https://userjs.khuong.dev
-// @version      1.2.0
+// @version      1.3.0
 // @description  Render markdown files from local or raw URLs with full GFM support
 // @author       Lam Ngoc Khuong
 // @updateURL    https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/general/markdown-viewer.user.js
@@ -20,7 +20,10 @@
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_getResourceText
+// @grant        GM_getResourceURL
+// @grant        GM_xmlhttpRequest
 // @grant        unsafeWindow
+// @connect      cdn.jsdelivr.net
 // @resource     MD_IT https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/dist/markdown-it.min.js
 // @resource     MD_FOOTNOTE https://cdn.jsdelivr.net/npm/markdown-it-footnote@4.0.0/dist/markdown-it-footnote.min.js
 // @resource     MD_ANCHOR https://cdn.jsdelivr.net/npm/markdown-it-anchor@9.2.0/dist/markdownItAnchor.umd.js
@@ -65,7 +68,8 @@
     REPLACE: 'mdv-replace-container',
     SPLIT: 'mdv-split-container',
     MODAL: 'mdv-modal-container',
-    TOC: 'mdv-toc-sidebar'
+    TOC: 'mdv-toc-sidebar',
+    HELP: 'mdv-help-modal'
   };
 
   // Resource loading order (dependencies must load before dependents)
@@ -141,7 +145,6 @@
       script.textContent = code;
       (document.head || document.documentElement).appendChild(script);
       script.remove();
-      console.log(`[Markdown Viewer] Executed ${name} via script tag (${code.length} bytes)`);
     } catch (err) {
       console.error(`[Markdown Viewer] Failed to execute ${name}:`, err);
       throw err;
@@ -170,18 +173,14 @@
       const result = fakeModule.exports;
       const resultType = typeof result;
 
-      console.log(`[Markdown Viewer] ${name} module.exports type: ${resultType}`);
 
       // Check if we got something useful
       if (result && (resultType === 'function' || (resultType === 'object' && Object.keys(result).length > 0))) {
         evalLibraries[globalName] = result;
-        console.log(`[Markdown Viewer] Captured ${globalName} via CommonJS mode`);
       } else if (result && resultType === 'object' && result.default) {
         // ES module style default export
         evalLibraries[globalName] = result.default;
-        console.log(`[Markdown Viewer] Captured ${globalName} via default export`);
       } else {
-        console.warn(`[Markdown Viewer] Could not capture ${globalName} (type: ${resultType})`);
       }
     } catch (err) {
       console.error(`[Markdown Viewer] Failed to execute ${name} via eval:`, err);
@@ -197,10 +196,8 @@
     try {
       const code = GM_getResourceText(resourceName);
       if (!code) {
-        console.warn(`[Markdown Viewer] Resource ${resourceName} is empty or undefined`);
         return false;
       }
-      console.log(`[Markdown Viewer] Got resource ${resourceName}: ${code.length} bytes`);
       executeScript(code, resourceName);
       return true;
     } catch (err) {
@@ -218,14 +215,14 @@
     try {
       let css = GM_getResourceText(resourceName);
       if (!css) {
-        console.warn(`[Markdown Viewer] Style resource ${resourceName} is empty`);
         return false;
       }
 
-      // Fix KaTeX font paths - replace relative paths with CDN URLs
+      // For KaTeX CSS, we'll inject custom @font-face rules separately
+      // Remove the original font references as they'll be blocked by CSP
       if (resourceName === 'CSS_KATEX') {
-        const cdnBase = 'https://cdn.jsdelivr.net/npm/katex@0.16.21/dist';
-        css = css.replace(/url\(fonts\//g, `url(${cdnBase}/fonts/`);
+        // Remove @font-face rules from original CSS (we'll inject our own)
+        css = css.replace(/@font-face\s*\{[^}]+\}/g, '');
       }
 
       // GM_addStyle bypasses page CSP
@@ -238,18 +235,98 @@
   }
 
   /**
-   * Load all dependencies from @resource (CSP-safe)
-   * @returns {boolean} True if all critical dependencies loaded
+   * KaTeX font configuration - URLs and font-face properties
    */
-  function loadDependencies() {
-    console.log('[Markdown Viewer] Loading dependencies from @resource...');
+  const KATEX_FONT_BASE = 'https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/fonts';
+  const KATEX_FONTS = [
+    { file: 'KaTeX_Main-Regular.woff2', family: 'KaTeX_Main', weight: 'normal', style: 'normal' },
+    { file: 'KaTeX_Main-Bold.woff2', family: 'KaTeX_Main', weight: 'bold', style: 'normal' },
+    { file: 'KaTeX_Main-Italic.woff2', family: 'KaTeX_Main', weight: 'normal', style: 'italic' },
+    { file: 'KaTeX_Main-BoldItalic.woff2', family: 'KaTeX_Main', weight: 'bold', style: 'italic' },
+    { file: 'KaTeX_Math-Italic.woff2', family: 'KaTeX_Math', weight: 'normal', style: 'italic' },
+    { file: 'KaTeX_Math-BoldItalic.woff2', family: 'KaTeX_Math', weight: 'bold', style: 'italic' },
+    { file: 'KaTeX_Size1-Regular.woff2', family: 'KaTeX_Size1', weight: 'normal', style: 'normal' },
+    { file: 'KaTeX_Size2-Regular.woff2', family: 'KaTeX_Size2', weight: 'normal', style: 'normal' },
+    { file: 'KaTeX_Size3-Regular.woff2', family: 'KaTeX_Size3', weight: 'normal', style: 'normal' },
+    { file: 'KaTeX_Size4-Regular.woff2', family: 'KaTeX_Size4', weight: 'normal', style: 'normal' },
+    { file: 'KaTeX_AMS-Regular.woff2', family: 'KaTeX_AMS', weight: 'normal', style: 'normal' },
+    { file: 'KaTeX_Caligraphic-Regular.woff2', family: 'KaTeX_Caligraphic', weight: 'normal', style: 'normal' },
+    { file: 'KaTeX_Caligraphic-Bold.woff2', family: 'KaTeX_Caligraphic', weight: 'bold', style: 'normal' },
+    { file: 'KaTeX_Fraktur-Regular.woff2', family: 'KaTeX_Fraktur', weight: 'normal', style: 'normal' },
+    { file: 'KaTeX_Fraktur-Bold.woff2', family: 'KaTeX_Fraktur', weight: 'bold', style: 'normal' },
+    { file: 'KaTeX_SansSerif-Regular.woff2', family: 'KaTeX_SansSerif', weight: 'normal', style: 'normal' },
+    { file: 'KaTeX_SansSerif-Bold.woff2', family: 'KaTeX_SansSerif', weight: 'bold', style: 'normal' },
+    { file: 'KaTeX_SansSerif-Italic.woff2', family: 'KaTeX_SansSerif', weight: 'normal', style: 'italic' },
+    { file: 'KaTeX_Script-Regular.woff2', family: 'KaTeX_Script', weight: 'normal', style: 'normal' },
+    { file: 'KaTeX_Typewriter-Regular.woff2', family: 'KaTeX_Typewriter', weight: 'normal', style: 'normal' }
+  ];
+
+  /**
+   * Fetch a font file via GM_xmlhttpRequest and return ArrayBuffer
+   * @param {string} url - Font URL
+   * @returns {Promise<ArrayBuffer>} Font data as ArrayBuffer
+   */
+  function fetchFontAsArrayBuffer(url) {
+    return new Promise((resolve, reject) => {
+      GM_xmlhttpRequest({
+        method: 'GET',
+        url: url,
+        responseType: 'arraybuffer',
+        onload: (response) => {
+          if (response.status === 200) {
+            resolve(response.response);
+          } else {
+            reject(new Error(`HTTP ${response.status}`));
+          }
+        },
+        onerror: (err) => reject(err)
+      });
+    });
+  }
+
+  /**
+   * Load KaTeX fonts via JavaScript FontFace API
+   * This bypasses CSP by loading fonts programmatically instead of via CSS
+   */
+  async function loadKaTeXFonts() {
+    if (typeof GM_xmlhttpRequest !== 'function' || typeof FontFace !== 'function') {
+      return;
+    }
+
+    // Load fonts in parallel
+    const promises = KATEX_FONTS.map(async (font) => {
+      try {
+        const url = `${KATEX_FONT_BASE}/${font.file}`;
+        const buffer = await fetchFontAsArrayBuffer(url);
+        const fontFace = new FontFace(font.family, buffer, {
+          weight: font.weight,
+          style: font.style,
+          display: 'swap'
+        });
+        await fontFace.load();
+        document.fonts.add(fontFace);
+      } catch {
+        // Silently fail - font will use fallback
+      }
+    });
+
+    await Promise.all(promises);
+  }
+
+  /**
+   * Load all dependencies from @resource (CSP-safe)
+   * @returns {Promise<boolean>} True if all critical dependencies loaded
+   */
+  async function loadDependencies() {
 
     // Load styles first
     let stylesLoaded = 0;
     for (const name of STYLE_RESOURCES) {
       if (loadStyleResource(name)) stylesLoaded++;
     }
-    console.log(`[Markdown Viewer] Loaded ${stylesLoaded}/${STYLE_RESOURCES.length} styles`);
+
+    // Load KaTeX fonts via blob URLs (CSP-safe) - don't await, load in background
+    loadKaTeXFonts().catch(() => {});
 
     // Load scripts in order
     let scriptsLoaded = 0;
@@ -263,29 +340,19 @@
         criticalFailed = true;
         console.error(`[Markdown Viewer] Critical dependency failed: ${res.name}`);
       } else {
-        console.warn(`[Markdown Viewer] Optional dependency failed: ${res.name} (continuing)`);
       }
     }
-    console.log(`[Markdown Viewer] Loaded ${scriptsLoaded}/${SCRIPT_RESOURCES.length} scripts`);
 
     if (criticalFailed) {
       return false;
     }
 
     // Check unsafeWindow first (script tag injection exposes libraries there)
-    console.log('[Markdown Viewer] Checking unsafeWindow for libraries...', {
-      markdownit: typeof unsafeWindow.markdownit,
-      DOMPurify: typeof unsafeWindow.DOMPurify,
-      hljs: typeof unsafeWindow.hljs,
-      katex: typeof unsafeWindow.katex,
-      mermaid: typeof unsafeWindow.mermaid
-    });
 
     // Check if script tag injection worked (libraries on unsafeWindow)
     const scriptTagWorked = typeof unsafeWindow.markdownit === 'function';
 
     if (scriptTagWorked) {
-      console.log('[Markdown Viewer] Script tag injection worked, using unsafeWindow');
       markdownit = unsafeWindow.markdownit;
       DOMPurify = unsafeWindow.DOMPurify;
       hljs = unsafeWindow.hljs;
@@ -297,7 +364,6 @@
       markdownItTocDoneRight = unsafeWindow.markdownItTocDoneRight;
     } else {
       // CSP blocked script tags, fall back to eval method
-      console.log('[Markdown Viewer] Script tag blocked by CSP, falling back to eval...');
 
       // Mapping of resource names to global names
       const resourceToGlobal = {
@@ -323,11 +389,9 @@
             }
           }
         } catch (err) {
-          console.warn(`[Markdown Viewer] Eval fallback failed for ${res.name}:`, err);
         }
       }
 
-      console.log('[Markdown Viewer] Eval libraries captured:', Object.keys(evalLibraries));
 
       // Assign from evalLibraries
       markdownit = evalLibraries.markdownit;
@@ -391,7 +455,6 @@
           console.error(`[Markdown Viewer] Critical library missing: ${check.desc}`);
           return false;
         }
-        console.warn(`[Markdown Viewer] Optional library missing: ${check.desc}`);
         continue;
       }
 
@@ -407,7 +470,6 @@
       }
     }
 
-    console.log('[Markdown Viewer] Dependencies verified with integrity checks');
     return true;
   }
 
@@ -732,6 +794,13 @@
     sep2.style.cssText = 'height: 1px; background: #e2e8f0; margin: 4px 0;';
     dropdown.appendChild(sep2);
 
+    // Help button
+    const helpBtn = createMenuItem('?', 'Keyboard Shortcuts', () => {
+      showHelpModal();
+      hideDropdown();
+    });
+    dropdown.appendChild(helpBtn);
+
     // Close button
     const closeBtn = createMenuItem('✕', 'Close Viewer', () => {
       closeViewer();
@@ -941,7 +1010,6 @@
             // Fallback to auto-detect
             return hljs.highlightAuto(str).value;
           } catch (e) {
-            console.warn('[Markdown Viewer] Highlight error:', e);
           }
         }
         return ''; // Use default escaping
@@ -1007,7 +1075,6 @@
           throwOnError: false
         });
       } catch (e) {
-        console.warn('[Markdown Viewer] KaTeX display math error:', e);
         return match;
       }
     });
@@ -1021,7 +1088,6 @@
           throwOnError: false
         });
       } catch (e) {
-        console.warn('[Markdown Viewer] KaTeX inline math error:', e);
         return match;
       }
     });
@@ -1147,7 +1213,6 @@
       mermaid.render(diagramId, code).then(({ svg }) => {
         mermaidDiv.innerHTML = svg;
       }).catch((err) => {
-        console.warn('[Markdown Viewer] Mermaid render error:', err);
         mermaidDiv.innerHTML = `<pre class="mermaid-error">${escapeHTML(code)}</pre>`;
         mermaidDiv.classList.add('mermaid-error');
       });
@@ -1334,6 +1399,108 @@
   function hideTocSidebar() {
     const sidebar = document.getElementById(UI_IDS.TOC);
     if (sidebar) sidebar.style.display = 'none';
+  }
+
+  // ==========================================================================
+  // Help Modal (Keyboard Shortcuts)
+  // ==========================================================================
+
+  /**
+   * Keyboard shortcuts configuration
+   */
+  const SHORTCUTS = [
+    { keys: ['?'], desc: 'Show this help' },
+    { keys: ['Esc'], desc: 'Close viewer / Close help' },
+    { keys: ['Ctrl', 'Shift', 'M'], desc: 'Toggle viewer' },
+    { keys: ['Ctrl', 'Shift', 'T'], desc: 'Cycle theme' }
+  ];
+
+  /**
+   * Create help modal with keyboard shortcuts
+   */
+  function createHelpModal() {
+    // Remove existing
+    const existing = document.getElementById(UI_IDS.HELP);
+    if (existing) existing.remove();
+
+    const modal = document.createElement('div');
+    modal.id = UI_IDS.HELP;
+    Object.assign(modal.style, {
+      position: 'fixed',
+      top: '0',
+      left: '0',
+      right: '0',
+      bottom: '0',
+      zIndex: '999999',
+      display: 'none',
+      alignItems: 'center',
+      justifyContent: 'center'
+    });
+
+    const shortcutsHTML = SHORTCUTS.map(s => {
+      const keysHTML = s.keys.map(k => `<kbd class="mdv-kbd">${k}</kbd>`).join(' + ');
+      return `
+        <tr>
+          <td class="mdv-help-keys">${keysHTML}</td>
+          <td class="mdv-help-desc">${s.desc}</td>
+        </tr>
+      `;
+    }).join('');
+
+    modal.innerHTML = `
+      <div class="mdv-help-backdrop" style="position:absolute;inset:0;background:rgba(0,0,0,0.5)"></div>
+      <div class="mdv-help-content" style="position:relative;width:90%;max-width:400px;border-radius:12px;background:#fff;box-shadow:0 25px 50px rgba(0,0,0,0.25);overflow:hidden">
+        <div class="mdv-help-header" style="padding:16px 20px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center">
+          <h3 style="margin:0;font-size:16px;font-weight:600">Keyboard Shortcuts</h3>
+          <button class="mdv-help-close" aria-label="Close" style="border:none;background:none;cursor:pointer;font-size:20px;color:#718096;padding:0 4px;line-height:1">×</button>
+        </div>
+        <div class="mdv-help-body" style="padding:16px 20px">
+          <table class="mdv-help-table" style="width:100%;border-collapse:collapse">
+            <tbody>${shortcutsHTML}</tbody>
+          </table>
+        </div>
+        <div class="mdv-help-footer" style="padding:12px 20px;background:#f8f9fa;border-top:1px solid #e2e8f0;font-size:12px;color:#718096;text-align:center">
+          Press <kbd class="mdv-kbd">?</kbd> anytime to show this help
+        </div>
+      </div>
+    `;
+
+    // Close handlers
+    modal.querySelector('.mdv-help-backdrop').addEventListener('click', hideHelpModal);
+    modal.querySelector('.mdv-help-close').addEventListener('click', hideHelpModal);
+
+    document.body.appendChild(modal);
+    return modal;
+  }
+
+  /**
+   * Show help modal
+   */
+  function showHelpModal() {
+    let modal = document.getElementById(UI_IDS.HELP);
+    if (!modal) {
+      modal = createHelpModal();
+    }
+    modal.style.display = 'flex';
+    // Focus close button for accessibility
+    const closeBtn = modal.querySelector('.mdv-help-close');
+    if (closeBtn) closeBtn.focus();
+  }
+
+  /**
+   * Hide help modal
+   */
+  function hideHelpModal() {
+    const modal = document.getElementById(UI_IDS.HELP);
+    if (modal) modal.style.display = 'none';
+  }
+
+  /**
+   * Check if help modal is visible
+   */
+  function isHelpModalVisible() {
+    const modal = document.getElementById(UI_IDS.HELP);
+    return modal && modal.style.display === 'flex';
   }
 
   // ==========================================================================
@@ -1533,10 +1700,35 @@
     keyboardSetup = true;
 
     document.addEventListener('keydown', (e) => {
-      // ESC to close viewer
-      if (e.key === 'Escape' && state.isOpen) {
+      // Don't trigger shortcuts when typing in input fields
+      const target = e.target;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        return;
+      }
+
+      // ESC to close help modal first, then viewer
+      if (e.key === 'Escape') {
+        if (isHelpModalVisible()) {
+          e.preventDefault();
+          hideHelpModal();
+          return;
+        }
+        if (state.isOpen) {
+          e.preventDefault();
+          closeViewer();
+        }
+        return;
+      }
+
+      // ? to show help modal (Shift+/ on most keyboards)
+      if (e.key === '?' || (e.shiftKey && e.key === '/')) {
         e.preventDefault();
-        closeViewer();
+        if (isHelpModalVisible()) {
+          hideHelpModal();
+        } else {
+          showHelpModal();
+        }
+        return;
       }
 
       // Ctrl+Shift+M to toggle viewer
@@ -2062,6 +2254,59 @@
   overflow-y: hidden;
 }
 
+/* KaTeX font fallbacks for CSP-restricted sites (e.g., GitHub raw) */
+.mdv-content .katex {
+  font-family: KaTeX_Main, "Times New Roman", Times, Georgia, serif;
+}
+
+.mdv-content .katex .mathnormal {
+  font-family: KaTeX_Math, "Times New Roman", Times, Georgia, serif;
+  font-style: italic;
+}
+
+.mdv-content .katex .mathit {
+  font-family: KaTeX_Main, "Times New Roman", Times, Georgia, serif;
+  font-style: italic;
+}
+
+.mdv-content .katex .mathrm {
+  font-family: KaTeX_Main, "Times New Roman", Times, Georgia, serif;
+  font-style: normal;
+}
+
+.mdv-content .katex .mathbf {
+  font-family: KaTeX_Main, "Times New Roman", Times, Georgia, serif;
+  font-weight: bold;
+}
+
+.mdv-content .katex .mathsf {
+  font-family: KaTeX_SansSerif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+
+.mdv-content .katex .mathtt {
+  font-family: KaTeX_Typewriter, ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+
+.mdv-content .katex .amsrm {
+  font-family: KaTeX_AMS, "Times New Roman", Times, Georgia, serif;
+}
+
+.mdv-content .katex .mathcal {
+  font-family: KaTeX_Caligraphic, "Lucida Calligraphy", cursive, serif;
+}
+
+.mdv-content .katex .mathfrak {
+  font-family: KaTeX_Fraktur, "Old English Text MT", serif;
+}
+
+.mdv-content .katex .mathbb {
+  font-family: KaTeX_AMS, "Times New Roman", Times, Georgia, serif;
+}
+
+.mdv-content .katex .mathscr {
+  font-family: KaTeX_Script, "Brush Script MT", cursive;
+}
+
 /* Mermaid Diagrams */
 .mdv-content .mermaid-diagram {
   text-align: center;
@@ -2118,6 +2363,79 @@
 }
 
 /* ==========================================================================
+   Help Modal Styles
+   ========================================================================== */
+#mdv-help-modal .mdv-help-backdrop {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+#mdv-help-modal .mdv-help-content {
+  background: var(--mdv-bg) !important;
+  box-shadow: 0 8px 32px var(--mdv-shadow) !important;
+}
+
+#mdv-help-modal .mdv-help-header {
+  background: var(--mdv-code-bg) !important;
+  border-bottom-color: var(--mdv-border) !important;
+}
+
+#mdv-help-modal .mdv-help-header h3 {
+  color: var(--mdv-text) !important;
+}
+
+#mdv-help-modal .mdv-help-close {
+  color: var(--mdv-text-secondary) !important;
+  transition: color 0.15s;
+}
+
+#mdv-help-modal .mdv-help-close:hover {
+  color: var(--mdv-text) !important;
+}
+
+#mdv-help-modal .mdv-help-body {
+  color: var(--mdv-text);
+}
+
+#mdv-help-modal .mdv-help-table tr {
+  border-bottom: 1px solid var(--mdv-border);
+}
+
+#mdv-help-modal .mdv-help-table tr:last-child {
+  border-bottom: none;
+}
+
+#mdv-help-modal .mdv-help-keys {
+  padding: 10px 16px 10px 0;
+  white-space: nowrap;
+  text-align: right;
+  width: 50%;
+}
+
+#mdv-help-modal .mdv-help-desc {
+  padding: 10px 0 10px 16px;
+  color: var(--mdv-text-secondary);
+}
+
+#mdv-help-modal .mdv-help-footer {
+  background: var(--mdv-code-bg) !important;
+  border-top-color: var(--mdv-border) !important;
+  color: var(--mdv-text-secondary) !important;
+}
+
+.mdv-kbd {
+  display: inline-block;
+  padding: 3px 6px;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1;
+  color: var(--mdv-text);
+  background: var(--mdv-bg);
+  border: 1px solid var(--mdv-border);
+  border-radius: 4px;
+  box-shadow: inset 0 -1px 0 var(--mdv-border);
+}
+
+/* ==========================================================================
    Responsive Styles
    ========================================================================== */
 @media (max-width: 768px) {
@@ -2161,7 +2479,8 @@
 @media print {
   #mdv-floating-btn,
   #mdv-dropdown,
-  #mdv-toc-sidebar {
+  #mdv-toc-sidebar,
+  #mdv-help-modal {
     display: none !important;
   }
 
@@ -2216,23 +2535,20 @@
   /**
    * Initialize the markdown viewer
    */
-  function init() {
+  async function init() {
     if (!isMarkdownPage()) {
-      console.log('[Markdown Viewer] Not a markdown page, skipping');
       return;
     }
 
-    console.log('[Markdown Viewer] Detected markdown page');
 
     // Get raw content before modifying DOM
     const rawContent = getRawContent();
     if (!rawContent.trim()) {
-      console.log('[Markdown Viewer] Empty content, skipping');
       return;
     }
 
     // Load dependencies from @resource (CSP-safe)
-    const loaded = loadDependencies();
+    const loaded = await loadDependencies();
     if (!loaded) {
       console.error('[Markdown Viewer] Failed to load critical dependencies. Check console for details.');
       return;
@@ -2259,7 +2575,7 @@
       setDisplayMode(lastMode);
     }
 
-    console.log('[Markdown Viewer] v1.2.0 Initialized');
+    console.log('[Markdown Viewer] Initialized');
   }
 
   // ==========================================================================
