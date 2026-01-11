@@ -45,7 +45,7 @@
     },
     {
       "name": "Markdown Viewer",
-      "version": "1.0.1",
+      "version": "4.1.0",
       "description": "Render markdown files from local or raw URLs with full GFM support",
       "author": "Lam Ngoc Khuong",
       "category": "general",
@@ -68,7 +68,7 @@
     },
     {
       "name": "[DEV] Markdown Viewer",
-      "version": "0.0.1-dev",
+      "version": "4.1.0-dev",
       "description": "Development version - loads from local dev server",
       "author": "Lam Ngoc Khuong",
       "category": "general",

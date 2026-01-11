@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Markdown Viewer
 // @namespace    https://userjs.khuong.dev
-// @version      3.0.0
+// @version      4.1.0
 // @description  Render markdown files from local or raw URLs with full GFM support
 // @author       Lam Ngoc Khuong
 // @updateURL    https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/general/markdown-viewer.user.js
@@ -45,7 +45,14 @@
   const PREFS = {
     DISPLAY_MODE: 'mdv_displayMode',
     BUTTON_POS: 'mdv_buttonPos',
-    LAST_STATE: 'mdv_lastState' // 'open' | 'closed' - remember if viewer was active
+    LAST_STATE: 'mdv_lastState', // 'open' | 'closed' - remember if viewer was active
+    THEME: 'mdv_theme' // 'light' | 'dark' | 'auto' - theme preference
+  };
+
+  const THEMES = {
+    AUTO: 'auto',
+    LIGHT: 'light',
+    DARK: 'dark'
   };
 
   const DEFAULT_MODE = 'replace';
@@ -89,7 +96,8 @@
     isOpen: false,
     originalBody: null,
     currentMode: null,
-    isDragging: false
+    isDragging: false,
+    theme: THEMES.AUTO
   };
 
   /**
@@ -308,6 +316,81 @@
   }
 
   // ==========================================================================
+  // Theme Management
+  // ==========================================================================
+
+  /**
+   * Get the current effective theme (resolves 'auto' to actual theme)
+   * @returns {'light' | 'dark'}
+   */
+  function getEffectiveTheme() {
+    if (state.theme === THEMES.AUTO) {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return state.theme;
+  }
+
+  /**
+   * Apply theme to document
+   * @param {'light' | 'dark' | 'auto'} theme
+   */
+  function applyTheme(theme) {
+    state.theme = theme;
+    setPreference(PREFS.THEME, theme);
+
+    const effectiveTheme = getEffectiveTheme();
+    document.documentElement.setAttribute('data-mdv-theme', effectiveTheme);
+
+    // Update theme toggle button icon if exists
+    updateThemeToggleIcon();
+  }
+
+  /**
+   * Cycle through themes: auto -> light -> dark -> auto
+   */
+  function cycleTheme() {
+    const order = [THEMES.AUTO, THEMES.LIGHT, THEMES.DARK];
+    const currentIndex = order.indexOf(state.theme);
+    const nextIndex = (currentIndex + 1) % order.length;
+    applyTheme(order[nextIndex]);
+  }
+
+  /**
+   * Get theme icon and label
+   * @param {'light' | 'dark' | 'auto'} theme
+   */
+  function getThemeInfo(theme) {
+    const info = {
+      [THEMES.AUTO]: { icon: '🔄', label: 'Auto (System)' },
+      [THEMES.LIGHT]: { icon: '☀️', label: 'Light' },
+      [THEMES.DARK]: { icon: '🌙', label: 'Dark' }
+    };
+    return info[theme] || info[THEMES.AUTO];
+  }
+
+  /**
+   * Update theme toggle button icon in dropdown
+   */
+  function updateThemeToggleIcon() {
+    const themeBtn = document.getElementById('mdv-theme-toggle');
+    if (themeBtn) {
+      const info = getThemeInfo(state.theme);
+      themeBtn.innerHTML = `<span style="width:20px;display:inline-block">${info.icon}</span> Theme: ${info.label}`;
+    }
+  }
+
+  /**
+   * Listen for system theme changes (when in auto mode)
+   */
+  function setupThemeListener() {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+      if (state.theme === THEMES.AUTO) {
+        applyTheme(THEMES.AUTO); // Re-apply to update effective theme
+      }
+    });
+  }
+
+  // ==========================================================================
   // Detection Utilities
   // ==========================================================================
 
@@ -498,9 +581,22 @@
     });
 
     // Separator
-    const sep = document.createElement('div');
-    sep.style.cssText = 'height: 1px; background: #e2e8f0; margin: 4px 0;';
-    dropdown.appendChild(sep);
+    const sep1 = document.createElement('div');
+    sep1.style.cssText = 'height: 1px; background: #e2e8f0; margin: 4px 0;';
+    dropdown.appendChild(sep1);
+
+    // Theme toggle button
+    const themeInfo = getThemeInfo(state.theme);
+    const themeBtn = createMenuItem(themeInfo.icon, `Theme: ${themeInfo.label}`, () => {
+      cycleTheme();
+    });
+    themeBtn.id = 'mdv-theme-toggle';
+    dropdown.appendChild(themeBtn);
+
+    // Separator
+    const sep2 = document.createElement('div');
+    sep2.style.cssText = 'height: 1px; background: #e2e8f0; margin: 4px 0;';
+    dropdown.appendChild(sep2);
 
     // Close button
     const closeBtn = createMenuItem('✕', 'Close Viewer', () => {
@@ -1123,6 +1219,12 @@
           setDisplayMode(mode);
         }
       }
+
+      // Ctrl+Shift+T to cycle theme
+      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 't') {
+        e.preventDefault();
+        cycleTheme();
+      }
     });
   }
 
@@ -1132,95 +1234,533 @@
 
   /**
    * Apply viewer styles using GM_addStyle
+   * Phase 4: GitHub-like styling with CSS custom properties
    */
   function applyViewerStyles() {
     // Only add once
     if (document.getElementById('mdv-styles')) return;
 
     const styles = `
-      .mdv-content {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-        line-height: 1.6;
-        color: #1a202c;
-        max-width: 800px;
-        margin: 0 auto;
-      }
-      .mdv-content h1, .mdv-content h2, .mdv-content h3,
-      .mdv-content h4, .mdv-content h5, .mdv-content h6 {
-        margin-top: 1.5em;
-        margin-bottom: 0.5em;
-        font-weight: 600;
-        line-height: 1.3;
-      }
-      .mdv-content h1 { font-size: 2em; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.3em; }
-      .mdv-content h2 { font-size: 1.5em; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.3em; }
-      .mdv-content h3 { font-size: 1.25em; }
-      .mdv-content p { margin: 1em 0; }
-      .mdv-content a { color: #3182ce; text-decoration: none; }
-      .mdv-content a:hover { text-decoration: underline; }
-      .mdv-content code {
-        background: #edf2f7;
-        padding: 0.2em 0.4em;
-        border-radius: 3px;
-        font-size: 0.9em;
-        font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-      }
-      .mdv-content pre {
-        background: #1a202c;
-        color: #e2e8f0;
-        padding: 16px;
-        border-radius: 6px;
-        overflow-x: auto;
-        font-size: 0.9em;
-      }
-      .mdv-content pre code {
-        background: none;
-        padding: 0;
-        color: inherit;
-      }
-      .mdv-content blockquote {
-        border-left: 4px solid #e2e8f0;
-        margin: 1em 0;
-        padding: 0.5em 1em;
-        color: #718096;
-        background: #f7fafc;
-      }
-      .mdv-content table {
-        border-collapse: collapse;
-        width: 100%;
-        margin: 1em 0;
-      }
-      .mdv-content th, .mdv-content td {
-        border: 1px solid #e2e8f0;
-        padding: 8px 12px;
-        text-align: left;
-      }
-      .mdv-content th { background: #f7fafc; font-weight: 600; }
-      .mdv-content img { max-width: 100%; height: auto; }
-      .mdv-content ul, .mdv-content ol { padding-left: 2em; margin: 1em 0; }
-      .mdv-content li { margin: 0.25em 0; }
-      .mdv-content hr { border: none; border-top: 1px solid #e2e8f0; margin: 2em 0; }
-      .mdv-replace { padding: 40px 20px; min-height: 100vh; background: #fff; }
+/* ==========================================================================
+   CSS Custom Properties - Light Theme (GitHub)
+   ========================================================================== */
+:root,
+:root[data-mdv-theme="light"] {
+  --mdv-bg: #ffffff;
+  --mdv-text: #24292f;
+  --mdv-text-secondary: #57606a;
+  --mdv-link: #0969da;
+  --mdv-border: #d0d7de;
+  --mdv-code-bg: #f6f8fa;
+  --mdv-blockquote-border: #d0d7de;
+  --mdv-blockquote-text: #57606a;
+  --mdv-table-border: #d0d7de;
+  --mdv-table-row-alt: #f6f8fa;
+  --mdv-btn-bg: #f6f8fa;
+  --mdv-btn-hover: #eaeef2;
+  --mdv-shadow: rgba(0,0,0,0.1);
+  --mdv-pre-bg: #f6f8fa;
+  --mdv-pre-text: #24292f;
+}
 
-      /* Dark mode support */
-      @media (prefers-color-scheme: dark) {
-        .mdv-content { color: #e2e8f0; }
-        .mdv-content a { color: #63b3ed; }
-        .mdv-content code { background: #2d3748; }
-        .mdv-content blockquote { background: #2d3748; border-color: #4a5568; color: #a0aec0; }
-        .mdv-content th { background: #2d3748; }
-        .mdv-content th, .mdv-content td { border-color: #4a5568; }
-        .mdv-replace { background: #1a202c; }
-        .mdv-split .mdv-raw { background: #2d3748 !important; }
-        .mdv-split .mdv-rendered { background: #1a202c; }
-        .mdv-split .mdv-divider { background: #4a5568 !important; }
-        .mdv-modal .mdv-modal-content { background: #2d3748; }
-        .mdv-modal .mdv-backdrop { background: rgba(0,0,0,0.7); }
-        #${UI_IDS.DROPDOWN} { background: #2d3748 !important; }
-        #${UI_IDS.DROPDOWN} button { color: #e2e8f0 !important; }
-        #${UI_IDS.DROPDOWN} button:hover { background: #4a5568 !important; }
-        #${UI_IDS.DROPDOWN} > div { background: #4a5568 !important; }
-      }
+/* Dark Theme (GitHub Dark) - via system preference */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-mdv-theme="light"]) {
+    --mdv-bg: #0d1117;
+    --mdv-text: #c9d1d9;
+    --mdv-text-secondary: #8b949e;
+    --mdv-link: #58a6ff;
+    --mdv-border: #30363d;
+    --mdv-code-bg: #161b22;
+    --mdv-blockquote-border: #3b434b;
+    --mdv-blockquote-text: #8b949e;
+    --mdv-table-border: #30363d;
+    --mdv-table-row-alt: #161b22;
+    --mdv-btn-bg: #21262d;
+    --mdv-btn-hover: #30363d;
+    --mdv-shadow: rgba(0,0,0,0.4);
+    --mdv-pre-bg: #161b22;
+    --mdv-pre-text: #c9d1d9;
+  }
+}
+
+/* Dark Theme - manual override */
+:root[data-mdv-theme="dark"] {
+  --mdv-bg: #0d1117;
+  --mdv-text: #c9d1d9;
+  --mdv-text-secondary: #8b949e;
+  --mdv-link: #58a6ff;
+  --mdv-border: #30363d;
+  --mdv-code-bg: #161b22;
+  --mdv-blockquote-border: #3b434b;
+  --mdv-blockquote-text: #8b949e;
+  --mdv-table-border: #30363d;
+  --mdv-table-row-alt: #161b22;
+  --mdv-btn-bg: #21262d;
+  --mdv-btn-hover: #30363d;
+  --mdv-shadow: rgba(0,0,0,0.4);
+  --mdv-pre-bg: #161b22;
+  --mdv-pre-text: #c9d1d9;
+}
+
+/* ==========================================================================
+   Floating Button & Dropdown
+   ========================================================================== */
+#mdv-floating-btn {
+  background: var(--mdv-btn-bg) !important;
+  color: var(--mdv-text) !important;
+  border: 1px solid var(--mdv-border) !important;
+  transition: transform 0.2s, box-shadow 0.2s, background 0.2s !important;
+}
+
+#mdv-floating-btn:hover {
+  background: var(--mdv-btn-hover) !important;
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px var(--mdv-shadow) !important;
+}
+
+#mdv-floating-btn:active {
+  transform: scale(0.98);
+}
+
+#mdv-floating-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+#mdv-dropdown {
+  background: var(--mdv-bg) !important;
+  border: 1px solid var(--mdv-border) !important;
+  box-shadow: 0 8px 24px var(--mdv-shadow) !important;
+}
+
+#mdv-dropdown button {
+  background: transparent !important;
+  color: var(--mdv-text) !important;
+}
+
+#mdv-dropdown button:hover {
+  background: var(--mdv-btn-hover) !important;
+}
+
+#mdv-dropdown > div[style*="height: 1px"] {
+  background: var(--mdv-border) !important;
+}
+
+/* ==========================================================================
+   Container Styles
+   ========================================================================== */
+.mdv-viewer {
+  background: var(--mdv-bg);
+  color: var(--mdv-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* Replace Mode */
+.mdv-replace {
+  min-height: 100vh;
+  padding: 32px;
+  box-sizing: border-box;
+  background: var(--mdv-bg) !important;
+}
+
+.mdv-replace .mdv-content {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Split Mode */
+.mdv-split {
+  background: var(--mdv-bg) !important;
+}
+
+.mdv-split .mdv-panel {
+  background: var(--mdv-bg) !important;
+}
+
+.mdv-split .mdv-raw {
+  background: var(--mdv-code-bg) !important;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 14px;
+  color: var(--mdv-text-secondary) !important;
+}
+
+.mdv-split .mdv-raw pre {
+  color: var(--mdv-text-secondary) !important;
+}
+
+.mdv-split .mdv-divider {
+  background: var(--mdv-border) !important;
+  transition: background 0.15s;
+}
+
+.mdv-split .mdv-divider:hover {
+  background: var(--mdv-link) !important;
+}
+
+/* Modal Mode */
+.mdv-modal .mdv-backdrop {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+@media (prefers-color-scheme: dark) {
+  .mdv-modal .mdv-backdrop {
+    background: rgba(0, 0, 0, 0.7);
+  }
+}
+
+.mdv-modal .mdv-modal-content {
+  background: var(--mdv-bg) !important;
+  box-shadow: 0 8px 32px var(--mdv-shadow) !important;
+}
+
+.mdv-modal .mdv-close-btn {
+  color: var(--mdv-text-secondary) !important;
+  font-size: 28px;
+  line-height: 1;
+  padding: 8px;
+  transition: color 0.15s;
+}
+
+.mdv-modal .mdv-close-btn:hover {
+  color: var(--mdv-text) !important;
+}
+
+/* Loading Indicator */
+#mdv-loader {
+  background: var(--mdv-bg) !important;
+  color: var(--mdv-text) !important;
+  border: 1px solid var(--mdv-border) !important;
+  box-shadow: 0 4px 12px var(--mdv-shadow) !important;
+}
+
+/* ==========================================================================
+   Markdown Content Styles (GitHub-like)
+   ========================================================================== */
+.mdv-content {
+  word-wrap: break-word;
+  color: var(--mdv-text);
+}
+
+.mdv-content > *:first-child {
+  margin-top: 0 !important;
+}
+
+.mdv-content > *:last-child {
+  margin-bottom: 0 !important;
+}
+
+/* Headings */
+.mdv-content h1,
+.mdv-content h2,
+.mdv-content h3,
+.mdv-content h4,
+.mdv-content h5,
+.mdv-content h6 {
+  margin-top: 24px;
+  margin-bottom: 16px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--mdv-text);
+}
+
+.mdv-content h1 {
+  font-size: 2em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--mdv-border);
+}
+
+.mdv-content h2 {
+  font-size: 1.5em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--mdv-border);
+}
+
+.mdv-content h3 { font-size: 1.25em; }
+.mdv-content h4 { font-size: 1em; }
+.mdv-content h5 { font-size: 0.875em; }
+.mdv-content h6 { font-size: 0.85em; color: var(--mdv-text-secondary); }
+
+/* Anchor Links */
+.mdv-content .header-anchor {
+  float: left;
+  padding-right: 4px;
+  margin-left: -20px;
+  line-height: 1;
+  opacity: 0;
+  text-decoration: none;
+  transition: opacity 0.15s;
+}
+
+.mdv-content h1:hover .header-anchor,
+.mdv-content h2:hover .header-anchor,
+.mdv-content h3:hover .header-anchor,
+.mdv-content h4:hover .header-anchor,
+.mdv-content h5:hover .header-anchor,
+.mdv-content h6:hover .header-anchor {
+  opacity: 1;
+}
+
+/* Paragraphs */
+.mdv-content p {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+/* Links */
+.mdv-content a {
+  color: var(--mdv-link);
+  text-decoration: none;
+}
+
+.mdv-content a:hover {
+  text-decoration: underline;
+}
+
+/* Lists */
+.mdv-content ul,
+.mdv-content ol {
+  margin-top: 0;
+  margin-bottom: 16px;
+  padding-left: 2em;
+}
+
+.mdv-content li {
+  margin-top: 0.25em;
+}
+
+.mdv-content li + li {
+  margin-top: 0.25em;
+}
+
+/* Task Lists */
+.mdv-content input[type="checkbox"] {
+  margin-right: 0.5em;
+  vertical-align: middle;
+}
+
+/* Blockquotes */
+.mdv-content blockquote {
+  margin: 0 0 16px 0;
+  padding: 0 1em;
+  color: var(--mdv-blockquote-text);
+  border-left: 0.25em solid var(--mdv-blockquote-border);
+}
+
+.mdv-content blockquote > :first-child {
+  margin-top: 0;
+}
+
+.mdv-content blockquote > :last-child {
+  margin-bottom: 0;
+}
+
+/* Inline Code */
+.mdv-content code {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 85%;
+  padding: 0.2em 0.4em;
+  margin: 0;
+  background: var(--mdv-code-bg);
+  border-radius: 6px;
+}
+
+/* Code Blocks */
+.mdv-content pre {
+  margin-top: 0;
+  margin-bottom: 16px;
+  padding: 16px;
+  overflow: auto;
+  font-size: 85%;
+  line-height: 1.45;
+  background: var(--mdv-pre-bg);
+  border-radius: 6px;
+}
+
+.mdv-content pre code {
+  padding: 0;
+  background: transparent;
+  border: 0;
+  font-size: 100%;
+  color: var(--mdv-pre-text);
+}
+
+/* Tables */
+.mdv-content table {
+  width: 100%;
+  border-spacing: 0;
+  border-collapse: collapse;
+  margin-top: 0;
+  margin-bottom: 16px;
+  display: block;
+  overflow-x: auto;
+}
+
+.mdv-content table th,
+.mdv-content table td {
+  padding: 6px 13px;
+  border: 1px solid var(--mdv-table-border);
+}
+
+.mdv-content table th {
+  font-weight: 600;
+  background: var(--mdv-table-row-alt);
+}
+
+.mdv-content table tr:nth-child(2n) {
+  background: var(--mdv-table-row-alt);
+}
+
+/* Images */
+.mdv-content img {
+  max-width: 100%;
+  height: auto;
+  box-sizing: border-box;
+  border-radius: 6px;
+}
+
+/* Horizontal Rules */
+.mdv-content hr {
+  height: 0.25em;
+  padding: 0;
+  margin: 24px 0;
+  background-color: var(--mdv-border);
+  border: 0;
+}
+
+/* Footnotes */
+.mdv-content .footnotes {
+  font-size: 85%;
+  color: var(--mdv-text-secondary);
+  border-top: 1px solid var(--mdv-border);
+  margin-top: 32px;
+  padding-top: 16px;
+}
+
+.mdv-content .footnotes-sep {
+  display: none;
+}
+
+.mdv-content .footnote-ref a,
+.mdv-content .footnote-backref {
+  text-decoration: none;
+}
+
+/* Math (KaTeX) */
+.mdv-content .katex-display {
+  margin: 16px 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+/* ==========================================================================
+   TOC Sidebar Styles
+   ========================================================================== */
+#mdv-toc-sidebar {
+  background: var(--mdv-bg) !important;
+  border: 1px solid var(--mdv-border) !important;
+  box-shadow: 0 4px 12px var(--mdv-shadow) !important;
+}
+
+#mdv-toc-sidebar .mdv-toc-header {
+  background: var(--mdv-code-bg) !important;
+  border-bottom: 1px solid var(--mdv-border) !important;
+  color: var(--mdv-text) !important;
+}
+
+#mdv-toc-sidebar .mdv-toc-toggle {
+  color: var(--mdv-text-secondary) !important;
+}
+
+#mdv-toc-sidebar .mdv-toc-toggle:hover {
+  color: var(--mdv-text) !important;
+}
+
+#mdv-toc-sidebar .mdv-toc-link {
+  color: var(--mdv-text-secondary) !important;
+  border-left: 2px solid transparent;
+  transition: all 0.15s ease;
+}
+
+#mdv-toc-sidebar .mdv-toc-link:hover {
+  color: var(--mdv-link) !important;
+  background: var(--mdv-code-bg) !important;
+  border-left-color: var(--mdv-link) !important;
+}
+
+/* ==========================================================================
+   Responsive Styles
+   ========================================================================== */
+@media (max-width: 768px) {
+  .mdv-replace {
+    padding: 16px;
+  }
+
+  .mdv-replace .mdv-content {
+    max-width: 100%;
+  }
+
+  .mdv-split {
+    flex-direction: column !important;
+  }
+
+  .mdv-split .mdv-divider {
+    width: 100% !important;
+    height: 4px !important;
+    cursor: row-resize !important;
+  }
+
+  .mdv-modal .mdv-modal-content {
+    width: 95% !important;
+    padding: 16px !important;
+  }
+
+  #mdv-floating-btn {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  /* Hide TOC sidebar on mobile */
+  #mdv-toc-sidebar {
+    display: none !important;
+  }
+}
+
+/* ==========================================================================
+   Print Styles
+   ========================================================================== */
+@media print {
+  #mdv-floating-btn,
+  #mdv-dropdown,
+  #mdv-toc-sidebar {
+    display: none !important;
+  }
+
+  .mdv-modal .mdv-backdrop,
+  .mdv-modal .mdv-close-btn {
+    display: none !important;
+  }
+
+  .mdv-replace {
+    padding: 0;
+  }
+
+  .mdv-content {
+    max-width: 100%;
+  }
+
+  .mdv-content a {
+    color: inherit;
+    text-decoration: underline;
+  }
+
+  .mdv-content pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+}
     `;
 
     const styleEl = document.createElement('style');
@@ -1274,6 +1814,12 @@
     // Store raw content in closure-based state (no global pollution)
     setState({ rawContent });
 
+    // Load and apply saved theme preference
+    const savedTheme = getPreference(PREFS.THEME, THEMES.AUTO);
+    state.theme = savedTheme;
+    applyTheme(savedTheme);
+    setupThemeListener();
+
     // Create UI components
     createFloatingButton();
     createDropdownMenu();
@@ -1286,7 +1832,7 @@
       setDisplayMode(lastMode);
     }
 
-    console.log('[Markdown Viewer] v3.0.0 Initialized (Phase 3 Rendering)');
+    console.log('[Markdown Viewer] v4.1.0 Initialized (Theme Toggle)');
   }
 
   // ==========================================================================
