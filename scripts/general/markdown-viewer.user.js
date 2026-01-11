@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Markdown Viewer
 // @namespace    https://userjs.khuong.dev
-// @version      1.1.0
+// @version      1.2.0
 // @description  Render markdown files from local or raw URLs with full GFM support
 // @author       Lam Ngoc Khuong
 // @updateURL    https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/general/markdown-viewer.user.js
@@ -29,7 +29,7 @@
 // @resource     MD_TEXMATH https://cdn.jsdelivr.net/npm/markdown-it-texmath@1.0.0/texmath.min.js
 // @resource     DOMPURIFY https://cdn.jsdelivr.net/npm/dompurify@3.2.4/dist/purify.min.js
 // @resource     HLJS_CORE https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js
-// @resource     MERMAID https://cdn.jsdelivr.net/npm/mermaid@9.4.3/dist/mermaid.min.js
+// @resource     MERMAID https://cdn.jsdelivr.net/npm/mermaid@10.9.0/dist/mermaid.min.js
 // @resource     CSS_KATEX https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css
 // @resource     CSS_HLJS_LIGHT https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.11.1/styles/github.min.css
 // @resource     CSS_HLJS_DARK https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.11.1/styles/github-dark.min.css
@@ -122,23 +122,69 @@
   // CSP-Safe Resource Loader (uses @resource + GM_getResourceText)
   // ==========================================================================
 
+  // Global references for libraries (accessible in sandbox)
+  let markdownit, DOMPurify, hljs, katex, texmath, mermaid;
+  let markdownitFootnote, markdownItAnchor, markdownItTocDoneRight;
+
+  // Storage for libraries when eval is used (CSP sites)
+  const evalLibraries = {};
+
   /**
-   * Execute script code and expose globals to unsafeWindow
-   * Uses script tag injection to properly expose globals
+   * Execute script code - tries script tag first, falls back to eval for CSP sites
    * @param {string} code - JavaScript code to execute
    * @param {string} name - Resource name for error reporting
    */
   function executeScript(code, name) {
     try {
-      // Inject script into page via script tag
-      // This ensures globals are properly exposed to window
+      // Try script tag injection first (works for non-CSP sites)
       const script = document.createElement('script');
       script.textContent = code;
       (document.head || document.documentElement).appendChild(script);
       script.remove();
+      console.log(`[Markdown Viewer] Executed ${name} via script tag (${code.length} bytes)`);
     } catch (err) {
       console.error(`[Markdown Viewer] Failed to execute ${name}:`, err);
       throw err;
+    }
+  }
+
+  /**
+   * Execute script code using eval (for CSP-protected sites)
+   * UMD libraries detect module/exports and use CommonJS mode
+   * @param {string} code - JavaScript code to execute
+   * @param {string} name - Resource name for error reporting
+   * @param {string} globalName - Expected global name the library creates
+   */
+  function executeScriptWithEval(code, name, globalName) {
+    try {
+      // Create fake CommonJS environment - UMD will detect this and use it
+      const fakeModule = { exports: {} };
+
+      // Create function with module/exports parameters
+      // UMD pattern: if (typeof exports === 'object' && typeof module !== 'undefined')
+      // This makes UMD use CommonJS mode and assign to module.exports
+      const fn = new Function('module', 'exports', code);
+      fn(fakeModule, fakeModule.exports);
+
+      // Get result - could be function, object, or assigned to exports
+      const result = fakeModule.exports;
+      const resultType = typeof result;
+
+      console.log(`[Markdown Viewer] ${name} module.exports type: ${resultType}`);
+
+      // Check if we got something useful
+      if (result && (resultType === 'function' || (resultType === 'object' && Object.keys(result).length > 0))) {
+        evalLibraries[globalName] = result;
+        console.log(`[Markdown Viewer] Captured ${globalName} via CommonJS mode`);
+      } else if (result && resultType === 'object' && result.default) {
+        // ES module style default export
+        evalLibraries[globalName] = result.default;
+        console.log(`[Markdown Viewer] Captured ${globalName} via default export`);
+      } else {
+        console.warn(`[Markdown Viewer] Could not capture ${globalName} (type: ${resultType})`);
+      }
+    } catch (err) {
+      console.error(`[Markdown Viewer] Failed to execute ${name} via eval:`, err);
     }
   }
 
@@ -151,9 +197,10 @@
     try {
       const code = GM_getResourceText(resourceName);
       if (!code) {
-        console.warn(`[Markdown Viewer] Resource ${resourceName} is empty`);
+        console.warn(`[Markdown Viewer] Resource ${resourceName} is empty or undefined`);
         return false;
       }
+      console.log(`[Markdown Viewer] Got resource ${resourceName}: ${code.length} bytes`);
       executeScript(code, resourceName);
       return true;
     } catch (err) {
@@ -225,40 +272,112 @@
       return false;
     }
 
+    // Check unsafeWindow first (script tag injection exposes libraries there)
+    console.log('[Markdown Viewer] Checking unsafeWindow for libraries...', {
+      markdownit: typeof unsafeWindow.markdownit,
+      DOMPurify: typeof unsafeWindow.DOMPurify,
+      hljs: typeof unsafeWindow.hljs,
+      katex: typeof unsafeWindow.katex,
+      mermaid: typeof unsafeWindow.mermaid
+    });
+
+    // Check if script tag injection worked (libraries on unsafeWindow)
+    const scriptTagWorked = typeof unsafeWindow.markdownit === 'function';
+
+    if (scriptTagWorked) {
+      console.log('[Markdown Viewer] Script tag injection worked, using unsafeWindow');
+      markdownit = unsafeWindow.markdownit;
+      DOMPurify = unsafeWindow.DOMPurify;
+      hljs = unsafeWindow.hljs;
+      katex = unsafeWindow.katex;
+      texmath = unsafeWindow.texmath;
+      mermaid = unsafeWindow.mermaid;
+      markdownitFootnote = unsafeWindow.markdownitFootnote;
+      markdownItAnchor = unsafeWindow.markdownItAnchor;
+      markdownItTocDoneRight = unsafeWindow.markdownItTocDoneRight;
+    } else {
+      // CSP blocked script tags, fall back to eval method
+      console.log('[Markdown Viewer] Script tag blocked by CSP, falling back to eval...');
+
+      // Mapping of resource names to global names
+      const resourceToGlobal = {
+        MD_IT: 'markdownit',
+        DOMPURIFY: 'DOMPurify',
+        HLJS_CORE: 'hljs',
+        KATEX: 'katex',
+        MD_TEXMATH: 'texmath',
+        MERMAID: 'mermaid',
+        MD_FOOTNOTE: 'markdownitFootnote',
+        MD_ANCHOR: 'markdownItAnchor',
+        MD_TOC: 'markdownItTocDoneRight'
+      };
+
+      // Re-execute all scripts with eval method
+      for (const res of SCRIPT_RESOURCES) {
+        try {
+          const code = GM_getResourceText(res.name);
+          if (code) {
+            const globalName = resourceToGlobal[res.name];
+            if (globalName) {
+              executeScriptWithEval(code, res.name, globalName);
+            }
+          }
+        } catch (err) {
+          console.warn(`[Markdown Viewer] Eval fallback failed for ${res.name}:`, err);
+        }
+      }
+
+      console.log('[Markdown Viewer] Eval libraries captured:', Object.keys(evalLibraries));
+
+      // Assign from evalLibraries
+      markdownit = evalLibraries.markdownit;
+      DOMPurify = evalLibraries.DOMPurify;
+      hljs = evalLibraries.hljs;
+      katex = evalLibraries.katex;
+      texmath = evalLibraries.texmath;
+      mermaid = evalLibraries.mermaid;
+      markdownitFootnote = evalLibraries.markdownitFootnote;
+      markdownItAnchor = evalLibraries.markdownItAnchor;
+      markdownItTocDoneRight = evalLibraries.markdownItTocDoneRight;
+    }
+
     // Security: Validate library integrity by checking expected signatures
-    // This detects tampered/malicious libraries that may have been injected
     const integrityChecks = [
       {
         name: 'markdownit',
+        lib: markdownit,
         desc: 'markdown-it',
         critical: true,
         validate: (lib) => typeof lib === 'function' && typeof lib().render === 'function'
       },
       {
         name: 'DOMPurify',
+        lib: DOMPurify,
         desc: 'DOMPurify',
         critical: true,
-        // DOMPurify can be object with sanitize, or factory function
         validate: (lib) => {
-          if (typeof lib === 'function') return true; // Factory pattern
+          if (typeof lib === 'function') return true;
           if (typeof lib === 'object' && typeof lib.sanitize === 'function') return true;
           return false;
         }
       },
       {
         name: 'hljs',
+        lib: hljs,
         desc: 'highlight.js',
         critical: false,
         validate: (lib) => typeof lib === 'object' && typeof lib.highlightElement === 'function'
       },
       {
         name: 'katex',
+        lib: katex,
         desc: 'KaTeX',
         critical: false,
         validate: (lib) => typeof lib === 'object' && typeof lib.render === 'function'
       },
       {
         name: 'mermaid',
+        lib: mermaid,
         desc: 'Mermaid',
         critical: false,
         validate: (lib) => typeof lib === 'object' && typeof lib.initialize === 'function'
@@ -266,13 +385,13 @@
     ];
 
     for (const check of integrityChecks) {
-      const lib = unsafeWindow[check.name];
+      const lib = check.lib;
       if (typeof lib === 'undefined') {
         if (check.critical) {
           console.error(`[Markdown Viewer] Critical library missing: ${check.desc}`);
           return false;
         }
-        console.warn(`[Markdown Viewer] Optional library missing: ${check.desc} (window.${check.name})`);
+        console.warn(`[Markdown Viewer] Optional library missing: ${check.desc}`);
         continue;
       }
 
@@ -280,7 +399,6 @@
       try {
         if (!check.validate(lib)) {
           console.error(`[Markdown Viewer] SECURITY: ${check.desc} failed integrity check - may be tampered`);
-          console.debug(`[Markdown Viewer] DEBUG ${check.name}:`, typeof lib, lib);
           if (check.critical) return false;
         }
       } catch (e) {
@@ -744,10 +862,16 @@
     // Setup keyboard shortcuts
     setupKeyboardShortcuts();
 
-    // Render Mermaid diagrams if content has any
+    // Post-render processing
     const contentEl = document.querySelector('.mdv-content');
-    if (contentEl && hasMermaid(state.rawContent)) {
-      renderMermaidDiagrams(contentEl);
+    if (contentEl) {
+      // Add copy buttons to code blocks
+      addCopyButtons(contentEl);
+
+      // Render Mermaid diagrams if content has any
+      if (hasMermaid(state.rawContent)) {
+        renderMermaidDiagrams(contentEl);
+      }
     }
 
     // Create and update TOC sidebar
@@ -802,20 +926,20 @@
     const needsMath = hasMath(raw);
 
     // Create markdown-it instance with highlight.js integration
-    const md = unsafeWindow.markdownit({
+    const md = markdownit({
       html: true,
       linkify: true,
       typographer: true,
       highlight: function(str, lang) {
         // Use highlight.js if available
-        if (lang && unsafeWindow.hljs) {
+        if (lang && hljs) {
           try {
             // Try specific language first
-            if (unsafeWindow.hljs.getLanguage(lang)) {
-              return unsafeWindow.hljs.highlight(str, { language: lang }).value;
+            if (hljs.getLanguage(lang)) {
+              return hljs.highlight(str, { language: lang }).value;
             }
             // Fallback to auto-detect
-            return unsafeWindow.hljs.highlightAuto(str).value;
+            return hljs.highlightAuto(str).value;
           } catch (e) {
             console.warn('[Markdown Viewer] Highlight error:', e);
           }
@@ -825,14 +949,14 @@
     });
 
     // Add footnotes plugin
-    if (unsafeWindow.markdownitFootnote) {
-      md.use(unsafeWindow.markdownitFootnote);
+    if (markdownitFootnote) {
+      md.use(markdownitFootnote);
     }
 
     // Add anchor plugin for heading IDs
-    if (unsafeWindow.markdownItAnchor) {
-      md.use(unsafeWindow.markdownItAnchor, {
-        permalink: unsafeWindow.markdownItAnchor.permalink?.linkInsideHeader?.({
+    if (markdownItAnchor) {
+      md.use(markdownItAnchor, {
+        permalink: markdownItAnchor.permalink?.linkInsideHeader?.({
           symbol: '🔗',
           placement: 'before'
         }) || false,
@@ -840,10 +964,19 @@
       });
     }
 
+    // Add TOC plugin (requires anchor plugin)
+    if (markdownItTocDoneRight) {
+      md.use(markdownItTocDoneRight, {
+        slugify: slugify,
+        listType: 'ul',
+        level: [1, 2, 3, 4]
+      });
+    }
+
     // Add math support with KaTeX via texmath
-    if (needsMath && unsafeWindow.texmath && unsafeWindow.katex) {
-      md.use(unsafeWindow.texmath, {
-        engine: unsafeWindow.katex,
+    if (needsMath && texmath && katex) {
+      md.use(texmath, {
+        engine: katex,
         delimiters: 'dollars',
         katexOptions: {
           throwOnError: false,
@@ -862,9 +995,9 @@
    * @returns {string} HTML with rendered math
    */
   function renderMathExpressions(html) {
-    if (!unsafeWindow.katex) return html;
+    if (!katex) return html;
 
-    const katex = unsafeWindow.katex;
+    const katex = katex;
 
     // Render display math: $$...$$ (block)
     html = html.replace(/\$\$([^$]+)\$\$/g, (match, math) => {
@@ -919,7 +1052,7 @@
     }
 
     // Check if markdown-it is available
-    if (typeof unsafeWindow.markdownit !== 'function') {
+    if (typeof markdownit !== 'function') {
       return `<pre style="white-space:pre-wrap">${escapeHTML(raw)}</pre>`;
     }
 
@@ -932,15 +1065,15 @@
 
       // Post-process math if texmath plugin wasn't available (fallback)
       const needsMath = hasMath(raw);
-      if (needsMath && !unsafeWindow.texmath && unsafeWindow.katex) {
+      if (needsMath && !texmath && katex) {
         html = renderMathExpressions(html);
       }
 
       // Sanitize with DOMPurify
-      if (unsafeWindow.DOMPurify) {
-        const purify = typeof unsafeWindow.DOMPurify.sanitize === 'function'
-          ? unsafeWindow.DOMPurify
-          : unsafeWindow.DOMPurify(window); // Factory pattern
+      if (DOMPurify) {
+        const purify = typeof DOMPurify.sanitize === 'function'
+          ? DOMPurify
+          : DOMPurify(window); // Factory pattern
 
         html = purify.sanitize(html, {
           ADD_TAGS: ['math', 'mrow', 'mi', 'mo', 'mn', 'msup', 'msub', 'mfrac', 'semantics', 'annotation', 'mtext', 'mspace', 'mover', 'munder', 'span'],
@@ -968,10 +1101,10 @@
    * Initialize Mermaid with theme-aware config
    */
   function initMermaid() {
-    if (mermaidInitialized || !unsafeWindow.mermaid) return;
+    if (mermaidInitialized || !mermaid) return;
 
     const isDark = getEffectiveTheme() === 'dark';
-    unsafeWindow.mermaid.initialize({
+    mermaid.initialize({
       startOnLoad: false,
       theme: isDark ? 'dark' : 'default',
       securityLevel: 'loose',
@@ -985,7 +1118,7 @@
    * @param {HTMLElement} container
    */
   function renderMermaidDiagrams(container) {
-    if (!unsafeWindow.mermaid) return;
+    if (!mermaid) return;
 
     initMermaid();
 
@@ -993,7 +1126,7 @@
     const mermaidBlocks = container.querySelectorAll('pre > code.language-mermaid, code.language-mermaid');
     if (mermaidBlocks.length === 0) return;
 
-    // Process each mermaid block using render() API
+    // Process each mermaid block
     mermaidBlocks.forEach((codeEl, index) => {
       const preEl = codeEl.parentElement;
       const code = codeEl.textContent || '';
@@ -1010,20 +1143,73 @@
         codeEl.replaceWith(mermaidDiv);
       }
 
-      // Use mermaid.render() with callback for v9.x
-      try {
-        unsafeWindow.mermaid.render(diagramId, code, (svgCode) => {
-          if (svgCode) {
-            mermaidDiv.innerHTML = svgCode;
-          } else {
-            mermaidDiv.innerHTML = `<pre class="mermaid-error">${escapeHTML(code)}</pre>`;
-          }
-        });
-      } catch (err) {
+      // Mermaid v10.x: render() always returns Promise<{svg: string}>
+      mermaid.render(diagramId, code).then(({ svg }) => {
+        mermaidDiv.innerHTML = svg;
+      }).catch((err) => {
         console.warn('[Markdown Viewer] Mermaid render error:', err);
         mermaidDiv.innerHTML = `<pre class="mermaid-error">${escapeHTML(code)}</pre>`;
         mermaidDiv.classList.add('mermaid-error');
-      }
+      });
+    });
+  }
+
+  // ==========================================================================
+  // Code Block Copy Button
+  // ==========================================================================
+
+  /**
+   * Add copy buttons to all code blocks in container
+   * @param {HTMLElement} container
+   */
+  function addCopyButtons(container) {
+    const codeBlocks = container.querySelectorAll('pre > code');
+
+    codeBlocks.forEach((codeEl) => {
+      const preEl = codeEl.parentElement;
+      if (!preEl || preEl.querySelector('.mdv-copy-btn')) return; // Already has button
+
+      const btn = document.createElement('button');
+      btn.className = 'mdv-copy-btn';
+      btn.textContent = 'Copy';
+      btn.setAttribute('aria-label', 'Copy code to clipboard');
+
+      btn.addEventListener('click', async () => {
+        const code = codeEl.textContent || '';
+        try {
+          await navigator.clipboard.writeText(code);
+          btn.textContent = 'Copied!';
+          btn.classList.add('copied');
+          setTimeout(() => {
+            btn.textContent = 'Copy';
+            btn.classList.remove('copied');
+          }, 2000);
+        } catch (err) {
+          // Fallback for older browsers
+          const textArea = document.createElement('textarea');
+          textArea.value = code;
+          textArea.style.cssText = 'position:fixed;left:-9999px';
+          document.body.appendChild(textArea);
+          textArea.select();
+          try {
+            document.execCommand('copy');
+            btn.textContent = 'Copied!';
+            btn.classList.add('copied');
+            setTimeout(() => {
+              btn.textContent = 'Copy';
+              btn.classList.remove('copied');
+            }, 2000);
+          } catch (e) {
+            btn.textContent = 'Failed';
+            setTimeout(() => {
+              btn.textContent = 'Copy';
+            }, 2000);
+          }
+          document.body.removeChild(textArea);
+        }
+      });
+
+      preEl.appendChild(btn);
     });
   }
 
@@ -1713,6 +1899,7 @@
 
 /* Code Blocks */
 .mdv-content pre {
+  position: relative;
   margin-top: 0;
   margin-bottom: 16px;
   padding: 16px;
@@ -1729,6 +1916,42 @@
   border: 0;
   font-size: 100%;
   color: var(--mdv-pre-text);
+}
+
+/* Copy Button */
+.mdv-copy-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--mdv-text-secondary);
+  background: var(--mdv-btn-bg);
+  border: 1px solid var(--mdv-border);
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s, background 0.15s, color 0.15s;
+  z-index: 1;
+}
+
+.mdv-content pre:hover .mdv-copy-btn {
+  opacity: 1;
+}
+
+.mdv-copy-btn:hover {
+  background: var(--mdv-btn-hover);
+  color: var(--mdv-text);
+}
+
+.mdv-copy-btn:active {
+  transform: scale(0.95);
+}
+
+.mdv-copy-btn.copied {
+  color: #22c55e;
+  border-color: #22c55e;
 }
 
 /* Tables */
@@ -1772,6 +1995,46 @@
   margin: 24px 0;
   background-color: var(--mdv-border);
   border: 0;
+}
+
+/* Inline TOC (from [[toc]]) */
+.mdv-content .table-of-contents {
+  background: var(--mdv-code-bg);
+  border: 1px solid var(--mdv-border);
+  border-radius: 6px;
+  padding: 16px 24px;
+  margin-bottom: 24px;
+}
+
+.mdv-content .table-of-contents::before {
+  content: 'Table of Contents';
+  display: block;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--mdv-text);
+}
+
+.mdv-content .table-of-contents ul {
+  margin: 0;
+  padding-left: 1.5em;
+  list-style: none;
+}
+
+.mdv-content .table-of-contents > ul {
+  padding-left: 0;
+}
+
+.mdv-content .table-of-contents li {
+  margin: 4px 0;
+}
+
+.mdv-content .table-of-contents a {
+  color: var(--mdv-link);
+  text-decoration: none;
+}
+
+.mdv-content .table-of-contents a:hover {
+  text-decoration: underline;
 }
 
 /* Footnotes */
@@ -1996,7 +2259,7 @@
       setDisplayMode(lastMode);
     }
 
-    console.log('[Markdown Viewer] v1.1.0 Initialized (Mermaid Support)');
+    console.log('[Markdown Viewer] v1.2.0 Initialized');
   }
 
   // ==========================================================================

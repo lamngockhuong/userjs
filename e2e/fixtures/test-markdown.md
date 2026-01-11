@@ -4,7 +4,7 @@ This file is used to test the Markdown Viewer userscript.
 
 ## Basic Formatting
 
-**Bold text**, *italic text*, `inline code`, ~~strikethrough~~
+**Bold text**, _italic text_, `inline code`, ~~strikethrough~~
 
 > This is a blockquote
 
@@ -16,7 +16,7 @@ This file is used to test the Markdown Viewer userscript.
 
 ```javascript
 function hello() {
-  console.log('Hello, World!');
+  console.log("Hello, World!");
 }
 ```
 
@@ -27,12 +27,12 @@ def greet(name):
 
 ## Table
 
-| Feature | Status |
-|---------|--------|
-| GFM | ✅ |
-| Syntax Highlighting | ✅ |
-| Math | ✅ |
-| Mermaid | ✅ |
+| Feature             | Status |
+| ------------------- | ------ |
+| GFM                 | ✅     |
+| Syntax Highlighting | ✅     |
+| Math                | ✅     |
+| Mermaid             | ✅     |
 
 ## Task List
 
@@ -44,6 +44,7 @@ def greet(name):
 Inline: $E = mc^2$
 
 Block:
+
 $$
 \int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}
 $$

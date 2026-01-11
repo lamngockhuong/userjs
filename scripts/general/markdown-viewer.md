@@ -9,22 +9,25 @@ Render markdown files from local (file://) or raw URLs with full GFM support.
 - Manual theme toggle (Auto/Light/Dark)
 - GitHub-flavored markdown rendering
 - KaTeX math support ($...$ and $$...$$)
-- Mermaid diagram support
+- Mermaid diagram support (flowcharts, sequence, mindmaps, etc.)
 - Syntax highlighting (highlight.js)
+- Copy button on code blocks (hover to show)
+- Inline TOC via `[[toc]]` placeholder
 - Auto-generated TOC sidebar
 - Footnotes support
 - Keyboard shortcuts
 - Position & preferences persist
+- CSP-safe: works on GitHub raw URLs
 
 ## Supported URLs
 
-| Source      | URL Pattern                   |
-| ----------- | ----------------------------- |
-| Local files | `file:///*.md`                |
-| GitHub raw  | `raw.githubusercontent.com/*` |
-| GitHub Gist | `gist.githubusercontent.com/*`|
-| GitLab raw  | `gitlab.com/*/-/raw/*`        |
-| Bitbucket   | `bitbucket.org/*/raw/*`       |
+| Source      | URL Pattern                    |
+| ----------- | ------------------------------ |
+| Local files | `file:///*.md`                 |
+| GitHub raw  | `raw.githubusercontent.com/*`  |
+| GitHub Gist | `gist.githubusercontent.com/*` |
+| GitLab raw  | `gitlab.com/*/-/raw/*`         |
+| Bitbucket   | `bitbucket.org/*/raw/*`        |
 
 ## Usage
 
@@ -34,11 +37,11 @@ Render markdown files from local (file://) or raw URLs with full GFM support.
 
 ### Keyboard Shortcuts
 
-| Shortcut        | Action         |
-| --------------- | -------------- |
-| `Ctrl+Shift+M`  | Toggle viewer  |
-| `Ctrl+Shift+T`  | Cycle theme    |
-| `ESC`           | Close viewer   |
+| Shortcut       | Action        |
+| -------------- | ------------- |
+| `Ctrl+Shift+M` | Toggle viewer |
+| `Ctrl+Shift+T` | Cycle theme   |
+| `ESC`          | Close viewer  |
 
 ### Display Modes
 
@@ -86,6 +89,6 @@ Loaded from CDN (jsdelivr) via @resource:
 - markdown-it-toc-done-right v4.2.0
 - markdown-it-texmath v1.0.0
 - KaTeX v0.16.21
-- Mermaid v9.4.3
+- Mermaid v10.9.0
 - highlight.js v11.11.1
 - DOMPurify v3.2.4
