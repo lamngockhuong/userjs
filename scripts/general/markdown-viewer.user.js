@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Markdown Viewer
 // @namespace    https://userjs.khuong.dev
-// @version      1.0.0
+// @version      1.1.0
 // @description  Render markdown files from local or raw URLs with full GFM support
 // @author       Lam Ngoc Khuong
 // @updateURL    https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/general/markdown-viewer.user.js
@@ -28,7 +28,8 @@
 // @resource     KATEX https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js
 // @resource     MD_TEXMATH https://cdn.jsdelivr.net/npm/markdown-it-texmath@1.0.0/texmath.min.js
 // @resource     DOMPURIFY https://cdn.jsdelivr.net/npm/dompurify@3.2.4/dist/purify.min.js
-// @resource     HLJS_CORE https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.11.1/highlight.min.js
+// @resource     HLJS_CORE https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js
+// @resource     MERMAID https://cdn.jsdelivr.net/npm/mermaid@9.4.3/dist/mermaid.min.js
 // @resource     CSS_KATEX https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css
 // @resource     CSS_HLJS_LIGHT https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.11.1/styles/github.min.css
 // @resource     CSS_HLJS_DARK https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.11.1/styles/github-dark.min.css
@@ -75,6 +76,7 @@
     { name: 'DOMPURIFY', critical: true },
     { name: 'HLJS_CORE', critical: false },
     { name: 'KATEX', critical: false },
+    { name: 'MERMAID', critical: false },
     // Group 1 - Depends on markdown-it or katex
     { name: 'MD_FOOTNOTE', critical: false },
     { name: 'MD_ANCHOR', critical: false },
@@ -122,17 +124,18 @@
 
   /**
    * Execute script code and expose globals to unsafeWindow
-   * Uses Function constructor to bypass CSP, binds to unsafeWindow for global access
+   * Uses script tag injection to properly expose globals
    * @param {string} code - JavaScript code to execute
    * @param {string} name - Resource name for error reporting
    */
   function executeScript(code, name) {
     try {
-      // Create function with window/self parameters for UMD compatibility
-      // UMD libraries typically use: (this || window).libName = ...
-      // By providing unsafeWindow as context and params, globals attach correctly
-      const fn = new Function('window', 'self', 'globalThis', code);
-      fn.call(unsafeWindow, unsafeWindow, unsafeWindow, unsafeWindow);
+      // Inject script into page via script tag
+      // This ensures globals are properly exposed to window
+      const script = document.createElement('script');
+      script.textContent = code;
+      (document.head || document.documentElement).appendChild(script);
+      script.remove();
     } catch (err) {
       console.error(`[Markdown Viewer] Failed to execute ${name}:`, err);
       throw err;
@@ -166,11 +169,18 @@
    */
   function loadStyleResource(resourceName) {
     try {
-      const css = GM_getResourceText(resourceName);
+      let css = GM_getResourceText(resourceName);
       if (!css) {
         console.warn(`[Markdown Viewer] Style resource ${resourceName} is empty`);
         return false;
       }
+
+      // Fix KaTeX font paths - replace relative paths with CDN URLs
+      if (resourceName === 'CSS_KATEX') {
+        const cdnBase = 'https://cdn.jsdelivr.net/npm/katex@0.16.21/dist';
+        css = css.replace(/url\(fonts\//g, `url(${cdnBase}/fonts/`);
+      }
+
       // GM_addStyle bypasses page CSP
       GM_addStyle(css);
       return true;
@@ -246,6 +256,12 @@
         desc: 'KaTeX',
         critical: false,
         validate: (lib) => typeof lib === 'object' && typeof lib.render === 'function'
+      },
+      {
+        name: 'mermaid',
+        desc: 'Mermaid',
+        critical: false,
+        validate: (lib) => typeof lib === 'object' && typeof lib.initialize === 'function'
       }
     ];
 
@@ -728,9 +744,14 @@
     // Setup keyboard shortcuts
     setupKeyboardShortcuts();
 
+    // Render Mermaid diagrams if content has any
+    const contentEl = document.querySelector('.mdv-content');
+    if (contentEl && hasMermaid(state.rawContent)) {
+      renderMermaidDiagrams(contentEl);
+    }
+
     // Create and update TOC sidebar
     createTocSidebar();
-    const contentEl = document.querySelector('.mdv-content');
     if (contentEl) {
       const headings = extractHeadings(contentEl);
       updateTocSidebar(headings);
@@ -757,6 +778,13 @@
    */
   function hasFootnotes(content) {
     return /\[\^.+?\]/.test(content);
+  }
+
+  /**
+   * Check if content contains Mermaid diagrams
+   */
+  function hasMermaid(content) {
+    return /```mermaid/i.test(content);
   }
 
   // ==========================================================================
@@ -812,7 +840,7 @@
       });
     }
 
-    // Add math support with KaTeX
+    // Add math support with KaTeX via texmath
     if (needsMath && unsafeWindow.texmath && unsafeWindow.katex) {
       md.use(unsafeWindow.texmath, {
         engine: unsafeWindow.katex,
@@ -825,6 +853,47 @@
     }
 
     return md;
+  }
+
+  /**
+   * Post-process HTML to render math expressions with KaTeX
+   * Fallback when texmath plugin is not available
+   * @param {string} html - Rendered HTML
+   * @returns {string} HTML with rendered math
+   */
+  function renderMathExpressions(html) {
+    if (!unsafeWindow.katex) return html;
+
+    const katex = unsafeWindow.katex;
+
+    // Render display math: $$...$$ (block)
+    html = html.replace(/\$\$([^$]+)\$\$/g, (match, math) => {
+      try {
+        return katex.renderToString(math.trim(), {
+          displayMode: true,
+          throwOnError: false
+        });
+      } catch (e) {
+        console.warn('[Markdown Viewer] KaTeX display math error:', e);
+        return match;
+      }
+    });
+
+    // Render inline math: $...$ (not preceded or followed by $)
+    // Use negative lookbehind/lookahead to avoid matching $$
+    html = html.replace(/(?<!\$)\$(?!\$)([^$\n]+?)(?<!\$)\$(?!\$)/g, (match, math) => {
+      try {
+        return katex.renderToString(math.trim(), {
+          displayMode: false,
+          throwOnError: false
+        });
+      } catch (e) {
+        console.warn('[Markdown Viewer] KaTeX inline math error:', e);
+        return match;
+      }
+    });
+
+    return html;
   }
 
   /**
@@ -861,6 +930,12 @@
       // Render markdown
       let html = mdInstance.render(raw);
 
+      // Post-process math if texmath plugin wasn't available (fallback)
+      const needsMath = hasMath(raw);
+      if (needsMath && !unsafeWindow.texmath && unsafeWindow.katex) {
+        html = renderMathExpressions(html);
+      }
+
       // Sanitize with DOMPurify
       if (unsafeWindow.DOMPurify) {
         const purify = typeof unsafeWindow.DOMPurify.sanitize === 'function'
@@ -868,8 +943,8 @@
           : unsafeWindow.DOMPurify(window); // Factory pattern
 
         html = purify.sanitize(html, {
-          ADD_TAGS: ['math', 'mrow', 'mi', 'mo', 'mn', 'msup', 'msub', 'mfrac', 'semantics', 'annotation', 'mtext', 'mspace', 'mover', 'munder'],
-          ADD_ATTR: ['xmlns', 'encoding', 'mathvariant', 'displaystyle', 'scriptlevel'],
+          ADD_TAGS: ['math', 'mrow', 'mi', 'mo', 'mn', 'msup', 'msub', 'mfrac', 'semantics', 'annotation', 'mtext', 'mspace', 'mover', 'munder', 'span'],
+          ADD_ATTR: ['xmlns', 'encoding', 'mathvariant', 'displaystyle', 'scriptlevel', 'class', 'style'],
           ALLOW_DATA_ATTR: true
         });
       }
@@ -881,6 +956,75 @@
       console.error('[Markdown Viewer] Render error:', err);
       return `<pre style="white-space:pre-wrap">${escapeHTML(raw)}</pre>`;
     }
+  }
+
+  // ==========================================================================
+  // Mermaid Diagram Rendering
+  // ==========================================================================
+
+  let mermaidInitialized = false;
+
+  /**
+   * Initialize Mermaid with theme-aware config
+   */
+  function initMermaid() {
+    if (mermaidInitialized || !unsafeWindow.mermaid) return;
+
+    const isDark = getEffectiveTheme() === 'dark';
+    unsafeWindow.mermaid.initialize({
+      startOnLoad: false,
+      theme: isDark ? 'dark' : 'default',
+      securityLevel: 'loose',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif'
+    });
+    mermaidInitialized = true;
+  }
+
+  /**
+   * Render Mermaid diagrams in container
+   * @param {HTMLElement} container
+   */
+  function renderMermaidDiagrams(container) {
+    if (!unsafeWindow.mermaid) return;
+
+    initMermaid();
+
+    // Find all mermaid code blocks (rendered by markdown-it as <pre><code class="language-mermaid">)
+    const mermaidBlocks = container.querySelectorAll('pre > code.language-mermaid, code.language-mermaid');
+    if (mermaidBlocks.length === 0) return;
+
+    // Process each mermaid block using render() API
+    mermaidBlocks.forEach((codeEl, index) => {
+      const preEl = codeEl.parentElement;
+      const code = codeEl.textContent || '';
+
+      // Create container div
+      const mermaidDiv = document.createElement('div');
+      mermaidDiv.className = 'mermaid-diagram';
+      const diagramId = `mermaid-diagram-${Date.now()}-${index}`;
+
+      // Replace the pre/code block first
+      if (preEl && preEl.tagName === 'PRE') {
+        preEl.replaceWith(mermaidDiv);
+      } else {
+        codeEl.replaceWith(mermaidDiv);
+      }
+
+      // Use mermaid.render() with callback for v9.x
+      try {
+        unsafeWindow.mermaid.render(diagramId, code, (svgCode) => {
+          if (svgCode) {
+            mermaidDiv.innerHTML = svgCode;
+          } else {
+            mermaidDiv.innerHTML = `<pre class="mermaid-error">${escapeHTML(code)}</pre>`;
+          }
+        });
+      } catch (err) {
+        console.warn('[Markdown Viewer] Mermaid render error:', err);
+        mermaidDiv.innerHTML = `<pre class="mermaid-error">${escapeHTML(code)}</pre>`;
+        mermaidDiv.classList.add('mermaid-error');
+      }
+    });
   }
 
   // ==========================================================================
@@ -1655,6 +1799,26 @@
   overflow-y: hidden;
 }
 
+/* Mermaid Diagrams */
+.mdv-content .mermaid-diagram {
+  text-align: center;
+  margin: 16px 0;
+  padding: 16px;
+  background: var(--mdv-code-bg);
+  border-radius: 6px;
+  overflow-x: auto;
+}
+
+.mdv-content .mermaid-diagram svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.mdv-content .mermaid-error {
+  border: 2px dashed #e53e3e;
+  background: rgba(229, 62, 62, 0.1);
+}
+
 /* ==========================================================================
    TOC Sidebar Styles
    ========================================================================== */
@@ -1832,7 +1996,7 @@
       setDisplayMode(lastMode);
     }
 
-    console.log('[Markdown Viewer] v1.0.0 Initialized (Theme Toggle)');
+    console.log('[Markdown Viewer] v1.1.0 Initialized (Mermaid Support)');
   }
 
   // ==========================================================================

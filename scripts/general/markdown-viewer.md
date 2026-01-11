@@ -9,6 +9,7 @@ Render markdown files from local (file://) or raw URLs with full GFM support.
 - Manual theme toggle (Auto/Light/Dark)
 - GitHub-flavored markdown rendering
 - KaTeX math support ($...$ and $$...$$)
+- Mermaid diagram support
 - Syntax highlighting (highlight.js)
 - Auto-generated TOC sidebar
 - Footnotes support
@@ -85,5 +86,6 @@ Loaded from CDN (jsdelivr) via @resource:
 - markdown-it-toc-done-right v4.2.0
 - markdown-it-texmath v1.0.0
 - KaTeX v0.16.21
+- Mermaid v9.4.3
 - highlight.js v11.11.1
 - DOMPurify v3.2.4
