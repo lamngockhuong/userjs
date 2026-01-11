@@ -1,51 +1,89 @@
 # Markdown Viewer
 
-Render markdown files from local or raw URLs with full GFM (GitHub Flavored Markdown) support,
-including syntax highlighting, math rendering, and diagram support.
+Render markdown files from local (file://) or raw URLs with full GFM support.
 
 ## Features
 
-- **GFM Support**: Full GitHub Flavored Markdown rendering with tables, strikethrough, task lists
-- **Multiple Source Support**: Render from:
-  - Local markdown files (`file:///...`)
-  - GitHub raw content (`raw.githubusercontent.com`)
-  - GitLab raw content (`gitlab.com/-/raw/`)
-  - Bitbucket raw content (`bitbucket.org/*/raw/`)
-  - GitHub Gist (`gist.githubusercontent.com`)
-- **Syntax Highlighting**: Supports 11 common languages (JavaScript, TypeScript, Python, Bash, JSON,
-  YAML, HTML, CSS, SQL, Markdown, Shell)
-- **Math Support**: Render KaTeX mathematical expressions inline and as blocks
-- **Diagram Rendering**: Support for Mermaid diagrams
-- **Table of Contents**: Auto-generated from headings
-- **Footnotes & Anchors**: Extended markdown features with auto-generated anchor links
-- **CDN Fallback**: Automatic fallback between jsDelivr and unpkg if primary CDN fails
-- **Preference Persistence**: Remember display mode and last viewer state via
-  `GM_getValue`/`localStorage`
+- Floating button with dropdown menu
+- 3 display modes: Replace, Split view, Modal
+- Manual theme toggle (Auto/Light/Dark)
+- GitHub-flavored markdown rendering
+- KaTeX math support ($...$ and $$...$$)
+- Syntax highlighting (highlight.js)
+- Auto-generated TOC sidebar
+- Footnotes support
+- Keyboard shortcuts
+- Position & preferences persist
+
+## Supported URLs
+
+| Source      | URL Pattern                   |
+| ----------- | ----------------------------- |
+| Local files | `file:///*.md`                |
+| GitHub raw  | `raw.githubusercontent.com/*` |
+| GitHub Gist | `gist.githubusercontent.com/*`|
+| GitLab raw  | `gitlab.com/*/-/raw/*`        |
+| Bitbucket   | `bitbucket.org/*/raw/*`       |
 
 ## Usage
 
-1. Install the userscript in your userscript manager (Tampermonkey, Violentmonkey, etc.)
-2. Navigate to any markdown file (`.md` or `.markdown` extension) from supported sources
-3. The script will automatically detect markdown content
-4. In Phase 2: Control rendering via floating button with display mode options
+1. Navigate to a markdown file URL
+2. Click the floating button (bottom-right corner)
+3. Select display mode from dropdown
+
+### Keyboard Shortcuts
+
+| Shortcut        | Action         |
+| --------------- | -------------- |
+| `Ctrl+Shift+M`  | Toggle viewer  |
+| `Ctrl+Shift+T`  | Cycle theme    |
+| `ESC`           | Close viewer   |
+
+### Display Modes
+
+- **Replace**: Replaces entire page with rendered markdown
+- **Split**: Side-by-side raw and rendered view (resizable)
+- **Modal**: Full-screen overlay modal
+
+### Theme Options
+
+- **Auto**: Follows system preference (default)
+- **Light**: Force light theme
+- **Dark**: Force dark theme
+
+## Local File Access
+
+For `file://` URLs to work, enable file access in your browser:
+
+### Chrome/Edge (Tampermonkey)
+
+1. Go to `chrome://extensions`
+2. Click "Details" on Tampermonkey
+3. Enable "Allow access to file URLs"
+
+### Firefox (Tampermonkey)
+
+1. Go to `about:addons`
+2. Click Tampermonkey → Permissions
+3. Enable "Access your data for all websites"
 
 ## Notes
 
-- **Phase 1 Implementation**: Focuses on dependency loading and state management. UI components
-  (floating button, dropdown menu, TOC sidebar) planned for Phase 2
-- **Performance**: Uses common language subset for highlight.js (~200KB) instead of full bundle
-  (~1.3MB)
-- **Dependency Loading**: Scripts load in optimized order - independent scripts in parallel,
-  dependent scripts sequentially
-- **State Management**: Closure-based state prevents global namespace pollution
-- **Fallback Support**: If primary CDN fails, automatically tries fallback CDN
+- Button position is draggable and persists across sessions
+- Display mode and theme preferences persist via GM_setValue
+- TOC sidebar shows on left, auto-hides on mobile
+- Math renders only when content contains `$` expressions
+- Uses @resource for CSP-safe dependency loading
 
-## Supported Content Sources
+## Dependencies
 
-| Source      | URL Pattern                  | Status    |
-| ----------- | ---------------------------- | --------- |
-| Local Files | `file:///*.md`               | Supported |
-| GitHub      | `raw.githubusercontent.com`  | Supported |
-| GitHub Gist | `gist.githubusercontent.com` | Supported |
-| GitLab      | `gitlab.com/*/-/raw/*.md`    | Supported |
-| Bitbucket   | `bitbucket.org/*/raw/*.md`   | Supported |
+Loaded from CDN (jsdelivr) via @resource:
+
+- markdown-it v14.1.0
+- markdown-it-footnote v4.0.0
+- markdown-it-anchor v9.2.0
+- markdown-it-toc-done-right v4.2.0
+- markdown-it-texmath v1.0.0
+- KaTeX v0.16.21
+- highlight.js v11.11.1
+- DOMPurify v3.2.4

@@ -39,3 +39,4 @@ test-results/
 
 # Dev wrapper scripts
 *.dev.user.js
+.playwright-mcp/

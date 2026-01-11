@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Markdown Viewer
 // @namespace    https://userjs.khuong.dev
-// @version      4.1.0
+// @version      1.0.0
 // @description  Render markdown files from local or raw URLs with full GFM support
 // @author       Lam Ngoc Khuong
 // @updateURL    https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/general/markdown-viewer.user.js
@@ -1832,7 +1832,7 @@
       setDisplayMode(lastMode);
     }
 
-    console.log('[Markdown Viewer] v4.1.0 Initialized (Theme Toggle)');
+    console.log('[Markdown Viewer] v1.0.0 Initialized (Theme Toggle)');
   }
 
   // ==========================================================================
