@@ -15,7 +15,11 @@
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "format:md": "prettier --write \"**/*.md\"",
-    "format": "pnpm lint:fix && pnpm format:md"
+    "format": "pnpm lint:fix && pnpm format:md",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:report": "playwright show-report"
   },
   "dependencies": {
     "@shikijs/langs": "3.21.0",
@@ -30,10 +34,12 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.11",
+    "@playwright/test": "1.57.0",
     "@tailwindcss/vite": "4.1.18",
     "@types/node": "25.0.4",
     "@vitejs/plugin-vue": "6.0.3",
     "glob": "13.0.0",
+    "playwright": "1.57.0",
     "prettier": "3.7.4",
     "tailwindcss": "4.1.18",
     "tsx": "4.21.0",
