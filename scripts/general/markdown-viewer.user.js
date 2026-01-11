@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Markdown Viewer
 // @namespace    https://userjs.khuong.dev
-// @version      1.0.6
+// @version      2.0.0
 // @description  Render markdown files from local or raw URLs with full GFM support
 // @author       Lam Ngoc Khuong
 // @updateURL    https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/general/markdown-viewer.user.js
@@ -50,6 +50,16 @@
 
   const DEFAULT_MODE = 'replace';
 
+  // UI Element IDs
+  const UI_IDS = {
+    BUTTON: 'mdv-floating-btn',
+    DROPDOWN: 'mdv-dropdown',
+    REPLACE: 'mdv-replace-container',
+    SPLIT: 'mdv-split-container',
+    MODAL: 'mdv-modal-container',
+    TOC: 'mdv-toc-sidebar'
+  };
+
   // Resource loading order (dependencies must load before dependents)
   // Critical: must load, Optional: can fail
   const SCRIPT_RESOURCES = [
@@ -76,7 +86,10 @@
     rawContent: '',
     renderedContent: '',
     displayMode: DEFAULT_MODE,
-    isOpen: false
+    isOpen: false,
+    originalBody: null,
+    currentMode: null,
+    isDragging: false
   };
 
   /**
@@ -327,6 +340,613 @@
   }
 
   // ==========================================================================
+  // UI Components - Floating Button
+  // ==========================================================================
+
+  /**
+   * Create the floating button with Markdown icon
+   */
+  function createFloatingButton() {
+    // Remove existing button if any
+    const existing = document.getElementById(UI_IDS.BUTTON);
+    if (existing) existing.remove();
+
+    const btn = document.createElement('button');
+    btn.id = UI_IDS.BUTTON;
+    btn.setAttribute('aria-label', 'Markdown Viewer');
+    btn.setAttribute('aria-haspopup', 'true');
+    btn.setAttribute('aria-expanded', 'false');
+
+    // Markdown icon SVG
+    btn.innerHTML = `
+      <svg width="24" height="24" viewBox="0 0 208 128" fill="currentColor">
+        <rect x="5" y="5" width="198" height="118" rx="10" fill="none" stroke="currentColor" stroke-width="10"/>
+        <path d="M30 98V30h20l20 25 20-25h20v68H90V59L70 84 50 59v39zm125 0l-30-33h20V30h20v35h20z"/>
+      </svg>
+    `;
+
+    // Position from preferences or default
+    const pos = getPreference(PREFS.BUTTON_POS, { right: 20, bottom: 20 });
+    Object.assign(btn.style, {
+      position: 'fixed',
+      right: `${pos.right}px`,
+      bottom: `${pos.bottom}px`,
+      zIndex: '999999',
+      width: '48px',
+      height: '48px',
+      borderRadius: '50%',
+      border: 'none',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+      transition: 'transform 0.2s, box-shadow 0.2s',
+      background: '#4a5568',
+      color: '#fff'
+    });
+
+    btn.addEventListener('click', (e) => {
+      if (!state.isDragging) {
+        toggleDropdown();
+      }
+    });
+
+    makeDraggable(btn);
+    document.body.appendChild(btn);
+    return btn;
+  }
+
+  /**
+   * Make an element draggable with position persistence
+   */
+  function makeDraggable(element) {
+    let startX, startY, startRight, startBottom;
+    let hasMoved = false;
+
+    element.addEventListener('mousedown', (e) => {
+      if (e.button !== 0) return; // Left click only
+      hasMoved = false;
+      state.isDragging = false;
+      startX = e.clientX;
+      startY = e.clientY;
+      const rect = element.getBoundingClientRect();
+      startRight = window.innerWidth - rect.right;
+      startBottom = window.innerHeight - rect.bottom;
+
+      const onMove = (e) => {
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+
+        if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+          hasMoved = true;
+          state.isDragging = true;
+        }
+
+        if (hasMoved) {
+          const newRight = Math.max(0, startRight - dx);
+          const newBottom = Math.max(0, startBottom - dy);
+          element.style.right = `${newRight}px`;
+          element.style.bottom = `${newBottom}px`;
+          element.style.left = 'auto';
+          element.style.top = 'auto';
+        }
+      };
+
+      const onUp = () => {
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+
+        if (hasMoved) {
+          // Save position
+          const rect = element.getBoundingClientRect();
+          setPreference(PREFS.BUTTON_POS, {
+            right: window.innerWidth - rect.right,
+            bottom: window.innerHeight - rect.bottom
+          });
+        }
+
+        // Reset drag state after a short delay to allow click to be processed
+        setTimeout(() => {
+          state.isDragging = false;
+        }, 50);
+      };
+
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    });
+  }
+
+  // ==========================================================================
+  // UI Components - Dropdown Menu
+  // ==========================================================================
+
+  /**
+   * Create dropdown menu with display mode options
+   */
+  function createDropdownMenu() {
+    // Remove existing dropdown if any
+    const existing = document.getElementById(UI_IDS.DROPDOWN);
+    if (existing) existing.remove();
+
+    const dropdown = document.createElement('div');
+    dropdown.id = UI_IDS.DROPDOWN;
+    dropdown.setAttribute('role', 'menu');
+    Object.assign(dropdown.style, {
+      position: 'fixed',
+      zIndex: '999998',
+      minWidth: '160px',
+      borderRadius: '8px',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+      overflow: 'hidden',
+      display: 'none',
+      background: '#fff'
+    });
+
+    const modes = [
+      { id: 'replace', label: 'Replace Page', icon: '📄' },
+      { id: 'split', label: 'Split View', icon: '◧' },
+      { id: 'modal', label: 'Modal View', icon: '⬜' }
+    ];
+
+    modes.forEach(mode => {
+      const item = createMenuItem(mode.icon, mode.label, () => {
+        setDisplayMode(mode.id);
+        hideDropdown();
+      });
+      dropdown.appendChild(item);
+    });
+
+    // Separator
+    const sep = document.createElement('div');
+    sep.style.cssText = 'height: 1px; background: #e2e8f0; margin: 4px 0;';
+    dropdown.appendChild(sep);
+
+    // Close button
+    const closeBtn = createMenuItem('✕', 'Close Viewer', () => {
+      closeViewer();
+      hideDropdown();
+    });
+    dropdown.appendChild(closeBtn);
+
+    document.body.appendChild(dropdown);
+    return dropdown;
+  }
+
+  /**
+   * Create a menu item button
+   */
+  function createMenuItem(icon, label, onClick) {
+    const item = document.createElement('button');
+    item.setAttribute('role', 'menuitem');
+    item.innerHTML = `<span style="width:20px;display:inline-block">${icon}</span> ${label}`;
+    Object.assign(item.style, {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
+      width: '100%',
+      padding: '10px 16px',
+      border: 'none',
+      cursor: 'pointer',
+      textAlign: 'left',
+      fontSize: '14px',
+      background: 'transparent',
+      color: '#1a202c'
+    });
+    item.addEventListener('mouseenter', () => item.style.background = '#f7fafc');
+    item.addEventListener('mouseleave', () => item.style.background = 'transparent');
+    item.addEventListener('click', onClick);
+    return item;
+  }
+
+  /**
+   * Toggle dropdown visibility
+   */
+  function toggleDropdown() {
+    const dropdown = document.getElementById(UI_IDS.DROPDOWN);
+    const btn = document.getElementById(UI_IDS.BUTTON);
+    if (!dropdown || !btn) return;
+
+    if (dropdown.style.display === 'none') {
+      // Position dropdown above button
+      const btnRect = btn.getBoundingClientRect();
+      dropdown.style.right = `${window.innerWidth - btnRect.right}px`;
+      dropdown.style.bottom = `${window.innerHeight - btnRect.top + 8}px`;
+      dropdown.style.display = 'block';
+      btn.setAttribute('aria-expanded', 'true');
+
+      // Close on outside click
+      setTimeout(() => {
+        document.addEventListener('click', hideDropdownOnOutside);
+      }, 0);
+    } else {
+      hideDropdown();
+    }
+  }
+
+  /**
+   * Hide dropdown menu
+   */
+  function hideDropdown() {
+    const dropdown = document.getElementById(UI_IDS.DROPDOWN);
+    const btn = document.getElementById(UI_IDS.BUTTON);
+    if (dropdown) dropdown.style.display = 'none';
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+    document.removeEventListener('click', hideDropdownOnOutside);
+  }
+
+  /**
+   * Hide dropdown when clicking outside
+   */
+  function hideDropdownOnOutside(e) {
+    const dropdown = document.getElementById(UI_IDS.DROPDOWN);
+    const btn = document.getElementById(UI_IDS.BUTTON);
+    if (dropdown && btn && !dropdown.contains(e.target) && !btn.contains(e.target)) {
+      hideDropdown();
+    }
+  }
+
+  // ==========================================================================
+  // UI Components - Display Mode Containers
+  // ==========================================================================
+
+  /**
+   * Set the display mode and render content
+   */
+  function setDisplayMode(mode) {
+    // Store original body content first time
+    if (!state.originalBody) {
+      state.originalBody = document.body.innerHTML;
+    }
+
+    // Remove existing containers
+    closeViewer();
+
+    state.currentMode = mode;
+    state.isOpen = true;
+    setPreference(PREFS.DISPLAY_MODE, mode);
+    setPreference(PREFS.LAST_STATE, 'open');
+
+    // Render markdown (Phase 3 will implement full rendering)
+    const renderedHTML = renderMarkdownBasic(state.rawContent);
+
+    switch (mode) {
+      case 'replace':
+        createReplaceContainer(renderedHTML);
+        break;
+      case 'split':
+        createSplitContainer(state.rawContent, renderedHTML);
+        break;
+      case 'modal':
+        createModalContainer(renderedHTML);
+        break;
+    }
+
+    // Setup keyboard shortcuts
+    setupKeyboardShortcuts();
+  }
+
+  /**
+   * Basic markdown rendering (placeholder for Phase 3)
+   */
+  function renderMarkdownBasic(raw) {
+    // Check if markdown-it is available
+    if (typeof unsafeWindow.markdownit === 'function') {
+      try {
+        const md = unsafeWindow.markdownit({
+          html: true,
+          linkify: true,
+          typographer: true
+        });
+        const rendered = md.render(raw);
+        // Sanitize with DOMPurify if available
+        if (unsafeWindow.DOMPurify && typeof unsafeWindow.DOMPurify.sanitize === 'function') {
+          return unsafeWindow.DOMPurify.sanitize(rendered);
+        }
+        return rendered;
+      } catch (err) {
+        console.error('[Markdown Viewer] Render error:', err);
+      }
+    }
+    // Fallback: escape HTML and wrap in pre
+    return `<pre style="white-space:pre-wrap">${escapeHTML(raw)}</pre>`;
+  }
+
+  /**
+   * Create replace container (replaces entire page)
+   */
+  function createReplaceContainer(html) {
+    const container = document.createElement('div');
+    container.id = UI_IDS.REPLACE;
+    container.className = 'mdv-viewer mdv-replace';
+    container.innerHTML = `<article class="mdv-content">${html}</article>`;
+
+    // Replace body content
+    document.body.innerHTML = '';
+    document.body.appendChild(container);
+
+    // Re-add floating button and dropdown
+    createFloatingButton();
+    createDropdownMenu();
+
+    // Apply base styles
+    applyViewerStyles();
+  }
+
+  /**
+   * Create split container (raw left, rendered right)
+   */
+  function createSplitContainer(raw, html) {
+    const container = document.createElement('div');
+    container.id = UI_IDS.SPLIT;
+    container.className = 'mdv-viewer mdv-split';
+    Object.assign(container.style, {
+      position: 'fixed',
+      top: '0',
+      left: '0',
+      right: '0',
+      bottom: '0',
+      zIndex: '999990',
+      display: 'flex',
+      background: '#fff'
+    });
+
+    container.innerHTML = `
+      <div class="mdv-panel mdv-raw" style="flex:1;overflow:auto;padding:20px;background:#f8f9fa;border-right:1px solid #e2e8f0">
+        <pre style="white-space:pre-wrap;word-wrap:break-word;margin:0;font-family:monospace;font-size:13px">${escapeHTML(raw)}</pre>
+      </div>
+      <div class="mdv-divider" style="width:6px;background:#e2e8f0;cursor:col-resize;flex-shrink:0"></div>
+      <div class="mdv-panel mdv-rendered" style="flex:1;overflow:auto;padding:20px">
+        <article class="mdv-content">${html}</article>
+      </div>
+    `;
+
+    document.body.appendChild(container);
+    setupResizableDivider(container);
+    applyViewerStyles();
+  }
+
+  /**
+   * Create modal container (overlay)
+   */
+  function createModalContainer(html) {
+    const container = document.createElement('div');
+    container.id = UI_IDS.MODAL;
+    container.className = 'mdv-viewer mdv-modal';
+    Object.assign(container.style, {
+      position: 'fixed',
+      top: '0',
+      left: '0',
+      right: '0',
+      bottom: '0',
+      zIndex: '999990',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    });
+
+    container.innerHTML = `
+      <div class="mdv-backdrop" style="position:absolute;inset:0;background:rgba(0,0,0,0.5)"></div>
+      <div class="mdv-modal-content" style="position:relative;width:90%;max-width:900px;max-height:90vh;overflow:auto;border-radius:12px;padding:32px;background:#fff;box-shadow:0 25px 50px rgba(0,0,0,0.25)">
+        <button class="mdv-close-btn" aria-label="Close" style="position:absolute;top:12px;right:12px;border:none;background:none;cursor:pointer;font-size:24px;color:#718096;padding:4px 8px">×</button>
+        <article class="mdv-content">${html}</article>
+      </div>
+    `;
+
+    container.querySelector('.mdv-backdrop').addEventListener('click', closeViewer);
+    container.querySelector('.mdv-close-btn').addEventListener('click', closeViewer);
+
+    document.body.appendChild(container);
+    applyViewerStyles();
+  }
+
+  /**
+   * Close the viewer and restore original content
+   */
+  function closeViewer() {
+    // Remove all containers
+    [UI_IDS.REPLACE, UI_IDS.SPLIT, UI_IDS.MODAL].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.remove();
+    });
+
+    // Restore original body if in replace mode
+    if (state.currentMode === 'replace' && state.originalBody) {
+      document.body.innerHTML = state.originalBody;
+      createFloatingButton();
+      createDropdownMenu();
+    }
+
+    state.currentMode = null;
+    state.isOpen = false;
+    setPreference(PREFS.LAST_STATE, 'closed');
+  }
+
+  /**
+   * Setup resizable divider for split view
+   */
+  function setupResizableDivider(container) {
+    const divider = container.querySelector('.mdv-divider');
+    const leftPanel = container.querySelector('.mdv-raw');
+    const rightPanel = container.querySelector('.mdv-rendered');
+    if (!divider || !leftPanel || !rightPanel) return;
+
+    let isResizing = false;
+
+    divider.addEventListener('mousedown', () => {
+      isResizing = true;
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isResizing) return;
+      const containerRect = container.getBoundingClientRect();
+      const percent = ((e.clientX - containerRect.left) / containerRect.width) * 100;
+      const clampedPercent = Math.min(Math.max(percent, 20), 80);
+      leftPanel.style.flex = `0 0 ${clampedPercent}%`;
+      rightPanel.style.flex = `0 0 ${100 - clampedPercent - 1}%`;
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (isResizing) {
+        isResizing = false;
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+      }
+    });
+  }
+
+  // ==========================================================================
+  // UI Components - Keyboard Shortcuts
+  // ==========================================================================
+
+  let keyboardSetup = false;
+
+  /**
+   * Setup keyboard shortcuts
+   */
+  function setupKeyboardShortcuts() {
+    if (keyboardSetup) return;
+    keyboardSetup = true;
+
+    document.addEventListener('keydown', (e) => {
+      // ESC to close viewer
+      if (e.key === 'Escape' && state.isOpen) {
+        e.preventDefault();
+        closeViewer();
+      }
+
+      // Ctrl+Shift+M to toggle viewer
+      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'm') {
+        e.preventDefault();
+        if (state.isOpen) {
+          closeViewer();
+        } else {
+          const mode = getPreference(PREFS.DISPLAY_MODE, DEFAULT_MODE);
+          setDisplayMode(mode);
+        }
+      }
+    });
+  }
+
+  // ==========================================================================
+  // UI Components - Styles
+  // ==========================================================================
+
+  /**
+   * Apply viewer styles using GM_addStyle
+   */
+  function applyViewerStyles() {
+    // Only add once
+    if (document.getElementById('mdv-styles')) return;
+
+    const styles = `
+      .mdv-content {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        line-height: 1.6;
+        color: #1a202c;
+        max-width: 800px;
+        margin: 0 auto;
+      }
+      .mdv-content h1, .mdv-content h2, .mdv-content h3,
+      .mdv-content h4, .mdv-content h5, .mdv-content h6 {
+        margin-top: 1.5em;
+        margin-bottom: 0.5em;
+        font-weight: 600;
+        line-height: 1.3;
+      }
+      .mdv-content h1 { font-size: 2em; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.3em; }
+      .mdv-content h2 { font-size: 1.5em; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.3em; }
+      .mdv-content h3 { font-size: 1.25em; }
+      .mdv-content p { margin: 1em 0; }
+      .mdv-content a { color: #3182ce; text-decoration: none; }
+      .mdv-content a:hover { text-decoration: underline; }
+      .mdv-content code {
+        background: #edf2f7;
+        padding: 0.2em 0.4em;
+        border-radius: 3px;
+        font-size: 0.9em;
+        font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+      }
+      .mdv-content pre {
+        background: #1a202c;
+        color: #e2e8f0;
+        padding: 16px;
+        border-radius: 6px;
+        overflow-x: auto;
+        font-size: 0.9em;
+      }
+      .mdv-content pre code {
+        background: none;
+        padding: 0;
+        color: inherit;
+      }
+      .mdv-content blockquote {
+        border-left: 4px solid #e2e8f0;
+        margin: 1em 0;
+        padding: 0.5em 1em;
+        color: #718096;
+        background: #f7fafc;
+      }
+      .mdv-content table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 1em 0;
+      }
+      .mdv-content th, .mdv-content td {
+        border: 1px solid #e2e8f0;
+        padding: 8px 12px;
+        text-align: left;
+      }
+      .mdv-content th { background: #f7fafc; font-weight: 600; }
+      .mdv-content img { max-width: 100%; height: auto; }
+      .mdv-content ul, .mdv-content ol { padding-left: 2em; margin: 1em 0; }
+      .mdv-content li { margin: 0.25em 0; }
+      .mdv-content hr { border: none; border-top: 1px solid #e2e8f0; margin: 2em 0; }
+      .mdv-replace { padding: 40px 20px; min-height: 100vh; background: #fff; }
+
+      /* Dark mode support */
+      @media (prefers-color-scheme: dark) {
+        .mdv-content { color: #e2e8f0; }
+        .mdv-content a { color: #63b3ed; }
+        .mdv-content code { background: #2d3748; }
+        .mdv-content blockquote { background: #2d3748; border-color: #4a5568; color: #a0aec0; }
+        .mdv-content th { background: #2d3748; }
+        .mdv-content th, .mdv-content td { border-color: #4a5568; }
+        .mdv-replace { background: #1a202c; }
+        .mdv-split .mdv-raw { background: #2d3748 !important; }
+        .mdv-split .mdv-rendered { background: #1a202c; }
+        .mdv-split .mdv-divider { background: #4a5568 !important; }
+        .mdv-modal .mdv-modal-content { background: #2d3748; }
+        .mdv-modal .mdv-backdrop { background: rgba(0,0,0,0.7); }
+        #${UI_IDS.DROPDOWN} { background: #2d3748 !important; }
+        #${UI_IDS.DROPDOWN} button { color: #e2e8f0 !important; }
+        #${UI_IDS.DROPDOWN} button:hover { background: #4a5568 !important; }
+        #${UI_IDS.DROPDOWN} > div { background: #4a5568 !important; }
+      }
+    `;
+
+    const styleEl = document.createElement('style');
+    styleEl.id = 'mdv-styles';
+    styleEl.textContent = styles;
+    document.head.appendChild(styleEl);
+  }
+
+  // ==========================================================================
+  // Helper Functions
+  // ==========================================================================
+
+  /**
+   * Escape HTML special characters
+   */
+  function escapeHTML(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // ==========================================================================
   // Initialization
   // ==========================================================================
 
@@ -358,21 +978,19 @@
     // Store raw content in closure-based state (no global pollution)
     setState({ rawContent });
 
-    // Placeholders for Phase 2 - UI Components
-    // createFloatingButton();
-    // createDropdownMenu();
-    // createTocSidebar();
+    // Create UI components
+    createFloatingButton();
+    createDropdownMenu();
+    setupKeyboardShortcuts();
 
     // Auto-render if last state was 'open' (remember last state feature)
     const lastState = getPreference(PREFS.LAST_STATE, 'closed');
     if (lastState === 'open') {
       const lastMode = getPreference(PREFS.DISPLAY_MODE, DEFAULT_MODE);
-      setState({ displayMode: lastMode, isOpen: true });
-      // Placeholder for Phase 2: renderMarkdown(lastMode);
-      console.log(`[Markdown Viewer] Auto-render with mode: ${lastMode}`);
+      setDisplayMode(lastMode);
     }
 
-    console.log('[Markdown Viewer] v1.0.6 Initialized (security-hardened)');
+    console.log('[Markdown Viewer] v2.0.0 Initialized (Phase 2 UI)');
   }
 
   // ==========================================================================
