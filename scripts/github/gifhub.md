@@ -6,6 +6,7 @@ Insert GIFs directly into GitHub comments, PRs, issues, discussions, and gists w
 
 - **GIF Button** - Adds a "GIF" button to GitHub's markdown toolbar
 - **Search GIFs** - Search from Giphy's extensive GIF library
+- **CSP-Safe** - Bypasses GitHub's Content Security Policy using blob URLs
 - **Vietnamese Support** - Automatically converts Vietnamese diacritics to ASCII for better search
   results
 - **Keyboard Accessible** - Full keyboard navigation support (Tab, Enter, Escape)
@@ -36,12 +37,18 @@ Insert GIFs directly into GitHub comments, PRs, issues, discussions, and gists w
 
 ## Permissions
 
-| Permission                                      | Reason                            |
-| ----------------------------------------------- | --------------------------------- |
-| `GM_xmlhttpRequest`                             | Fetch GIFs from API (CORS bypass) |
-| `@connect github-gifs.aldilaff6545.workers.dev` | GIF search API endpoint           |
+| Permission                                      | Reason                                      |
+| ----------------------------------------------- | ------------------------------------------- |
+| `GM_xmlhttpRequest`                             | Fetch GIFs from API and images (CSP bypass) |
+| `@connect github-gifs.aldilaff6545.workers.dev` | GIF search API endpoint                     |
+| `@connect *`                                    | Fetch GIF images from Giphy CDN             |
 
 ## Changelog
+
+### v1.2.3
+
+- Fixed CSP violation on Chrome by fetching GIF images via `GM_xmlhttpRequest` and converting to
+  blob URLs
 
 ### v1.2.2
 
