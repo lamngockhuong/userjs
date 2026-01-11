@@ -30,6 +30,65 @@
       "readmeUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/github/gifhub.md"
     },
     {
+      "name": "[DEV] GIFHub",
+      "version": "0.0.1-dev",
+      "description": "Development version - loads from local dev server",
+      "author": "Lam Ngoc Khuong",
+      "category": "github",
+      "filename": "gifhub.dev.user.js",
+      "matches": [
+        "https://github.com/*",
+        "https://gist.github.com/*"
+      ],
+      "installUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/github/gifhub.dev.user.js",
+      "sourceUrl": "https://github.com/lamngockhuong/userjs/blob/main/scripts/github/gifhub.dev.user.js"
+    },
+    {
+      "name": "Markdown Viewer",
+      "version": "1.0.1",
+      "description": "Render markdown files from local or raw URLs with full GFM support",
+      "author": "Lam Ngoc Khuong",
+      "category": "general",
+      "filename": "markdown-viewer.user.js",
+      "matches": [
+        "file:///*.md",
+        "file:///*.markdown",
+        "*://raw.githubusercontent.com/*.md",
+        "*://raw.githubusercontent.com/*.markdown",
+        "*://gist.githubusercontent.com/*.md",
+        "*://gist.githubusercontent.com/*.markdown",
+        "*://gitlab.com/*/-/raw/*.md",
+        "*://gitlab.com/*/-/raw/*.markdown",
+        "*://bitbucket.org/*/raw/*.md",
+        "*://bitbucket.org/*/raw/*.markdown"
+      ],
+      "installUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/general/markdown-viewer.user.js",
+      "sourceUrl": "https://github.com/lamngockhuong/userjs/blob/main/scripts/general/markdown-viewer.user.js",
+      "readmeUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/general/markdown-viewer.md"
+    },
+    {
+      "name": "[DEV] Markdown Viewer",
+      "version": "0.0.1-dev",
+      "description": "Development version - loads from local dev server",
+      "author": "Lam Ngoc Khuong",
+      "category": "general",
+      "filename": "markdown-viewer.dev.user.js",
+      "matches": [
+        "file:///*.md",
+        "file:///*.markdown",
+        "*://raw.githubusercontent.com/*.md",
+        "*://raw.githubusercontent.com/*.markdown",
+        "*://gist.githubusercontent.com/*.md",
+        "*://gist.githubusercontent.com/*.markdown",
+        "*://gitlab.com/*/-/raw/*.md",
+        "*://gitlab.com/*/-/raw/*.markdown",
+        "*://bitbucket.org/*/raw/*.md",
+        "*://bitbucket.org/*/raw/*.markdown"
+      ],
+      "installUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/general/markdown-viewer.dev.user.js",
+      "sourceUrl": "https://github.com/lamngockhuong/userjs/blob/main/scripts/general/markdown-viewer.dev.user.js"
+    },
+    {
       "name": "Hello World",
       "version": "1.0.0",
       "description": "A sample userscript that logs a greeting message",
