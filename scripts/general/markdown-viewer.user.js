@@ -4,6 +4,7 @@
 // @version      1.3.0
 // @description  Render markdown files from local or raw URLs with full GFM support
 // @author       Lam Ngoc Khuong
+// @icon         https://cdn.simpleicons.org/markdown
 // @updateURL    https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/general/markdown-viewer.user.js
 // @downloadURL  https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/general/markdown-viewer.user.js
 // @match        file:///*.md
