@@ -68,6 +68,16 @@ including:
 - Documentation template
 - URL patterns for updates
 
+### Local Testing
+
+See [docs/userscript-local-testing.md](docs/userscript-local-testing.md) for testing workflow:
+
+1. Start dev server: `pnpm dev`
+2. Create dev wrapper: `scripts/<category>/<name>.dev.user.js`
+3. Install wrapper in Tampermonkey with `@require http://localhost:5173/scripts/...`
+
+Note: `*.dev.user.js` files are gitignored.
+
 ### Adding Bookmarks
 
 Edit `BOOKMARKS.md` with format:

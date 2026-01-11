@@ -92,6 +92,15 @@ pnpm format
 3. Run `pnpm build` to regenerate the index
 4. Scripts are auto-indexed with metadata from userscript headers
 
+## Local Testing
+
+1. Start dev server: `pnpm dev`
+2. Create dev wrapper: `scripts/<category>/<name>.dev.user.js`
+3. Install wrapper in Tampermonkey with `@require http://localhost:5173/scripts/...`
+4. Edit → Save → Refresh target page
+
+See [docs/userscript-local-testing.md](docs/userscript-local-testing.md) for details.
+
 ## License
 
 MIT

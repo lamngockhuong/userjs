@@ -36,3 +36,6 @@ plans/
 # Playwright
 playwright-report/
 test-results/
+
+# Dev wrapper scripts
+*.dev.user.js
