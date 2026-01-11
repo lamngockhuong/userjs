@@ -10,7 +10,9 @@ test.describe('Dark Mode', () => {
 
   test('should display dark mode toggle button', async ({ page }) => {
     // Look for dark mode toggle (sun/moon icon button)
-    const toggleButton = page.locator('button[aria-label*="mode"], button:has(svg)')
+    const toggleButton = page.locator(
+      'button[aria-label*="mode"], button:has(svg)',
+    )
     await expect(toggleButton.first()).toBeVisible()
   })
 
@@ -18,7 +20,9 @@ test.describe('Dark Mode', () => {
     const html = page.locator('html')
 
     // Get initial state
-    const initialDark = await html.evaluate((el) => el.classList.contains('dark'))
+    const initialDark = await html.evaluate((el) =>
+      el.classList.contains('dark'),
+    )
 
     // Find and click toggle button (usually in header)
     const header = page.locator('header')
@@ -45,7 +49,9 @@ test.describe('Dark Mode', () => {
     await page.reload()
 
     // State should persist
-    const persistedDark = await html.evaluate((el) => el.classList.contains('dark'))
+    const persistedDark = await html.evaluate((el) =>
+      el.classList.contains('dark'),
+    )
     expect(persistedDark).toBe(isDark)
   })
 
@@ -73,7 +79,7 @@ test.describe('Dark Mode', () => {
     expect(bgColor).not.toBe('rgb(255, 255, 255)')
   })
 
-  test('should respect system preference', async ({ page, context }) => {
+  test('should respect system preference', async ({ page }) => {
     // Clear localStorage
     await page.evaluate(() => localStorage.clear())
 

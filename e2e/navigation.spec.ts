@@ -49,7 +49,9 @@ test.describe('Keyboard Shortcuts', () => {
     await page.goto('/')
 
     // Wait for page to load
-    await page.waitForSelector('input[placeholder*="Search"]', { state: 'visible' })
+    await page.waitForSelector('input[placeholder*="Search"]', {
+      state: 'visible',
+    })
 
     // Press / key
     await page.keyboard.press('/')

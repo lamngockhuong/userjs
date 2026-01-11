@@ -118,6 +118,8 @@ test.describe('Script Detail Page', () => {
 
     // Should show not found message
     await expect(page.getByText(/script not found/i)).toBeVisible()
-    await expect(page.getByRole('link', { name: /back to home/i })).toBeVisible()
+    await expect(
+      page.getByRole('link', { name: /back to home/i }),
+    ).toBeVisible()
   })
 })

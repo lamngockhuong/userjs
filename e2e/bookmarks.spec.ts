@@ -10,7 +10,9 @@ test.describe('Bookmarks Page', () => {
   })
 
   test('should display bookmarks heading', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: /external bookmarks/i })).toBeVisible()
+    await expect(
+      page.getByRole('heading', { name: /external bookmarks/i }),
+    ).toBeVisible()
   })
 
   test('should display search bar', async ({ page }) => {
@@ -100,7 +102,10 @@ test.describe('Bookmarks Page', () => {
     await page.waitForSelector('a[target="_blank"]', { state: 'visible' })
 
     // Check for bookmark card content (name, description, source badge)
-    const bookmarkCard = page.locator('a[target="_blank"]').first().locator('..')
+    const bookmarkCard = page
+      .locator('a[target="_blank"]')
+      .first()
+      .locator('..')
 
     // Should have some text content
     const textContent = await bookmarkCard.textContent()
