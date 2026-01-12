@@ -22,13 +22,13 @@ Render and edit markdown files from local (file://) or raw URLs with full GFM su
 
 ## Supported URLs
 
-| Source      | URL Pattern                    |
-| ----------- | ------------------------------ |
-| Local files | `file:///*.md`                 |
-| GitHub raw  | `raw.githubusercontent.com/*`  |
-| GitHub Gist | `gist.githubusercontent.com/*` |
-| GitLab raw  | `gitlab.com/*/-/raw/*`         |
-| Bitbucket   | `bitbucket.org/*/raw/*`        |
+| Source      | URL Pattern                    | Notes                              |
+| ----------- | ------------------------------ | ---------------------------------- |
+| Local files | `file:///*.md`                 |                                    |
+| GitHub raw  | `raw.githubusercontent.com/*`  | Supports private files with tokens |
+| GitHub Gist | `gist.githubusercontent.com/*` | Supports private gists             |
+| GitLab raw  | `gitlab.com/*/-/raw/*`         | Supports private files with tokens |
+| Bitbucket   | `bitbucket.org/*/raw/*`        | Supports private files with tokens |
 
 ## Usage
 

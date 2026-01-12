@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Markdown Viewer
 // @namespace    https://userjs.khuong.dev
-// @version      1.4.0
+// @version      1.4.1
 // @description  Render and edit markdown files from local or raw URLs with full GFM support
 // @author       Lam Ngoc Khuong
 // @icon         https://cdn.simpleicons.org/markdown
@@ -9,14 +9,14 @@
 // @downloadURL  https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/general/markdown-viewer.user.js
 // @match        file:///*.md
 // @match        file:///*.markdown
-// @match        *://raw.githubusercontent.com/*.md
-// @match        *://raw.githubusercontent.com/*.markdown
-// @match        *://gist.githubusercontent.com/*.md
-// @match        *://gist.githubusercontent.com/*.markdown
-// @match        *://gitlab.com/*/-/raw/*.md
-// @match        *://gitlab.com/*/-/raw/*.markdown
-// @match        *://bitbucket.org/*/raw/*.md
-// @match        *://bitbucket.org/*/raw/*.markdown
+// @match        *://raw.githubusercontent.com/*.md*
+// @match        *://raw.githubusercontent.com/*.markdown*
+// @match        *://gist.githubusercontent.com/*.md*
+// @match        *://gist.githubusercontent.com/*.markdown*
+// @match        *://gitlab.com/*/-/raw/*.md*
+// @match        *://gitlab.com/*/-/raw/*.markdown*
+// @match        *://bitbucket.org/*/raw/*.md*
+// @match        *://bitbucket.org/*/raw/*.markdown*
 // @grant        GM_addStyle
 // @grant        GM_getValue
 // @grant        GM_setValue

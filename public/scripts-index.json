@@ -2,7 +2,7 @@
   "scripts": [
     {
       "name": "Markdown Viewer",
-      "version": "1.4.0",
+      "version": "1.4.1",
       "description": "Render and edit markdown files from local or raw URLs with full GFM support",
       "author": "Lam Ngoc Khuong",
       "category": "general",
@@ -10,14 +10,14 @@
       "matches": [
         "file:///*.md",
         "file:///*.markdown",
-        "*://raw.githubusercontent.com/*.md",
-        "*://raw.githubusercontent.com/*.markdown",
-        "*://gist.githubusercontent.com/*.md",
-        "*://gist.githubusercontent.com/*.markdown",
-        "*://gitlab.com/*/-/raw/*.md",
-        "*://gitlab.com/*/-/raw/*.markdown",
-        "*://bitbucket.org/*/raw/*.md",
-        "*://bitbucket.org/*/raw/*.markdown"
+        "*://raw.githubusercontent.com/*.md*",
+        "*://raw.githubusercontent.com/*.markdown*",
+        "*://gist.githubusercontent.com/*.md*",
+        "*://gist.githubusercontent.com/*.markdown*",
+        "*://gitlab.com/*/-/raw/*.md*",
+        "*://gitlab.com/*/-/raw/*.markdown*",
+        "*://bitbucket.org/*/raw/*.md*",
+        "*://bitbucket.org/*/raw/*.markdown*"
       ],
       "installUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/general/markdown-viewer.user.js",
       "sourceUrl": "https://github.com/lamngockhuong/userjs/blob/main/scripts/general/markdown-viewer.user.js",
