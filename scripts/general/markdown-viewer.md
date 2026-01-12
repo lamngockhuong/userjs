@@ -1,11 +1,12 @@
 # Markdown Viewer
 
-Render markdown files from local (file://) or raw URLs with full GFM support.
+Render and edit markdown files from local (file://) or raw URLs with full GFM support.
 
 ## Features
 
 - Floating button with dropdown menu
 - 3 display modes: Replace, Split view, Modal
+- **Editor mode** for local files (with live preview)
 - Manual theme toggle (Auto/Light/Dark)
 - GitHub-flavored markdown rendering
 - KaTeX math support ($...$ and $$...$$)
@@ -37,12 +38,13 @@ Render markdown files from local (file://) or raw URLs with full GFM support.
 
 ### Keyboard Shortcuts
 
-| Shortcut       | Action                    |
-| -------------- | ------------------------- |
-| `?`            | Show keyboard help        |
-| `Ctrl+Shift+M` | Toggle viewer             |
-| `Ctrl+Shift+T` | Cycle theme               |
-| `ESC`          | Close help / Close viewer |
+| Shortcut       | Action                      |
+| -------------- | --------------------------- |
+| `?`            | Show keyboard help          |
+| `Ctrl+Shift+M` | Toggle viewer               |
+| `Ctrl+Shift+E` | Toggle editor (local files) |
+| `Ctrl+Shift+T` | Cycle theme                 |
+| `ESC`          | Close viewer/editor/help    |
 
 ### Display Modes
 
@@ -50,11 +52,63 @@ Render markdown files from local (file://) or raw URLs with full GFM support.
 - **Split**: Side-by-side raw and rendered view (resizable)
 - **Modal**: Full-screen overlay modal
 
+| Replace Mode                                              | Split Mode                                            |
+| --------------------------------------------------------- | ----------------------------------------------------- |
+| ![Replace](https://raw.githubusercontent.com/lamngockhuong/userjs/main/docs/images/markdown-viewer-replace.png) | ![Split](https://raw.githubusercontent.com/lamngockhuong/userjs/main/docs/images/markdown-viewer-split.png) |
+
+| Modal Mode                                            | Floating Button                                           |
+| ----------------------------------------------------- | --------------------------------------------------------- |
+| ![Modal](https://raw.githubusercontent.com/lamngockhuong/userjs/main/docs/images/markdown-viewer-modal.png) | ![Button](https://raw.githubusercontent.com/lamngockhuong/userjs/main/docs/images/markdown-viewer-dropdown.png) |
+
 ### Theme Options
 
 - **Auto**: Follows system preference (default)
 - **Light**: Force light theme
 - **Dark**: Force dark theme
+
+## Editor Mode (Local Files Only)
+
+Edit markdown files directly in browser with live preview.
+
+![Editor Mode](https://raw.githubusercontent.com/lamngockhuong/userjs/main/docs/images/markdown-viewer-editor.png)
+
+### How to Use
+
+1. Open a local markdown file (`file://`)
+2. Click dropdown → "Edit File" (or press `Ctrl+Shift+E`)
+3. Edit in left pane, see live preview in right pane
+4. Click "Save New File" to download edited content
+5. Replace original file with downloaded file
+
+### Editor Shortcuts
+
+| Shortcut       | Action        |
+| -------------- | ------------- |
+| `Ctrl+S`       | Download file |
+| `Ctrl+B`       | Bold          |
+| `Ctrl+I`       | Italic        |
+| `Ctrl+K`       | Insert link   |
+| `Ctrl+Shift+S` | Strikethrough |
+| `Ctrl+Shift+K` | Code block    |
+| `Tab`          | Indent        |
+| `Shift+Tab`    | Unindent      |
+| `ESC`          | Close editor  |
+
+### Editor Toolbar
+
+- **B** / **I** / **S**: Bold, Italic, Strikethrough
+- **H1** / **H2** / **H3**: Headings
+- **`** / **```**: Inline code, Code block
+- **Link** / **Image**: Insert link, image
+- **Lists**: Bullet, Numbered, Quote
+- **Table**: Insert table template
+
+### Save Limitation
+
+Due to browser security, direct file overwrite is not possible. The editor downloads the edited
+file - you need to manually replace the original file.
+
+**Tip**: Enable "Ask where to save" in browser settings to choose save location directly.
 
 ## Local File Access
 
@@ -90,6 +144,11 @@ run.
 **Workaround:** Use Firefox for GitHub raw URLs.
 
 Other sources (file://, GitLab, Bitbucket, Gist) work fine on Chrome.
+
+### Editor Save
+
+Browser security prevents direct file writes from `file://` protocol. Edited content is downloaded
+as a new file - manually replace the original to save changes.
 
 ## Dependencies
 

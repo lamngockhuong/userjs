@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Markdown Viewer
 // @namespace    https://userjs.khuong.dev
-// @version      1.3.0
-// @description  Render markdown files from local or raw URLs with full GFM support
+// @version      1.4.0
+// @description  Render and edit markdown files from local or raw URLs with full GFM support
 // @author       Lam Ngoc Khuong
 // @icon         https://cdn.simpleicons.org/markdown
 // @updateURL    https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/general/markdown-viewer.user.js
@@ -70,7 +70,8 @@
     SPLIT: 'mdv-split-container',
     MODAL: 'mdv-modal-container',
     TOC: 'mdv-toc-sidebar',
-    HELP: 'mdv-help-modal'
+    HELP: 'mdv-help-modal',
+    EDITOR: 'mdv-editor-container'
   };
 
   // Resource loading order (dependencies must load before dependents)
@@ -104,7 +105,10 @@
     originalBody: null,
     currentMode: null,
     isDragging: false,
-    theme: THEMES.AUTO
+    theme: THEMES.AUTO,
+    isEditing: false,
+    editedContent: '',
+    hasUnsavedChanges: false
   };
 
   /**
@@ -607,6 +611,14 @@
   }
 
   /**
+   * Check if current page is a local file (file:// protocol)
+   * @returns {boolean}
+   */
+  function isLocalFile() {
+    return window.location.protocol === 'file:';
+  }
+
+  /**
    * Extract raw markdown content from page
    * @returns {string} Raw markdown content
    */
@@ -781,6 +793,20 @@
     const sep1 = document.createElement('div');
     sep1.style.cssText = 'height: 1px; background: #e2e8f0; margin: 4px 0;';
     dropdown.appendChild(sep1);
+
+    // Edit button (only for local files)
+    if (isLocalFile()) {
+      const editBtn = createMenuItem('✏️', 'Edit File', () => {
+        toggleEditMode();
+        hideDropdown();
+      });
+      editBtn.id = 'mdv-edit-toggle';
+      dropdown.appendChild(editBtn);
+
+      const sep1b = document.createElement('div');
+      sep1b.style.cssText = 'height: 1px; background: #e2e8f0; margin: 4px 0;';
+      dropdown.appendChild(sep1b);
+    }
 
     // Theme toggle button
     const themeInfo = getThemeInfo(state.theme);
@@ -1411,9 +1437,14 @@
    */
   const SHORTCUTS = [
     { keys: ['?'], desc: 'Show this help' },
-    { keys: ['Esc'], desc: 'Close viewer / Close help' },
+    { keys: ['Esc'], desc: 'Close viewer / Close editor' },
     { keys: ['Ctrl', 'Shift', 'M'], desc: 'Toggle viewer' },
-    { keys: ['Ctrl', 'Shift', 'T'], desc: 'Cycle theme' }
+    { keys: ['Ctrl', 'Shift', 'E'], desc: 'Toggle editor (local files)' },
+    { keys: ['Ctrl', 'Shift', 'T'], desc: 'Cycle theme' },
+    { keys: ['Ctrl', 'S'], desc: 'Download file (in editor)' },
+    { keys: ['Ctrl', 'B'], desc: 'Bold (in editor)' },
+    { keys: ['Ctrl', 'I'], desc: 'Italic (in editor)' },
+    { keys: ['Ctrl', 'K'], desc: 'Insert link (in editor)' }
   ];
 
   /**
@@ -1502,6 +1533,533 @@
   function isHelpModalVisible() {
     const modal = document.getElementById(UI_IDS.HELP);
     return modal && modal.style.display === 'flex';
+  }
+
+  // ==========================================================================
+  // Editor Mode (Phase 5)
+  // ==========================================================================
+
+  /**
+   * Editor toolbar configuration
+   */
+  const EDITOR_TOOLBAR = [
+    { id: 'bold', icon: 'B', label: 'Bold', shortcut: 'Ctrl+B', before: '**', after: '**' },
+    { id: 'italic', icon: 'I', label: 'Italic', shortcut: 'Ctrl+I', before: '*', after: '*' },
+    { id: 'strikethrough', icon: 'S', label: 'Strikethrough', shortcut: 'Ctrl+Shift+S', before: '~~', after: '~~' },
+    { id: 'sep1', type: 'separator' },
+    { id: 'h1', icon: 'H1', label: 'Heading 1', before: '# ', after: '', lineStart: true },
+    { id: 'h2', icon: 'H2', label: 'Heading 2', before: '## ', after: '', lineStart: true },
+    { id: 'h3', icon: 'H3', label: 'Heading 3', before: '### ', after: '', lineStart: true },
+    { id: 'sep2', type: 'separator' },
+    { id: 'code', icon: '`', label: 'Inline Code', shortcut: 'Ctrl+`', before: '`', after: '`' },
+    { id: 'codeblock', icon: '```', label: 'Code Block', shortcut: 'Ctrl+Shift+K', before: '```\n', after: '\n```', multiline: true },
+    { id: 'sep3', type: 'separator' },
+    { id: 'link', icon: '🔗', label: 'Link', shortcut: 'Ctrl+K', template: '[text](url)' },
+    { id: 'image', icon: '🖼️', label: 'Image', template: '![alt](url)' },
+    { id: 'sep4', type: 'separator' },
+    { id: 'ul', icon: '•', label: 'Bullet List', before: '- ', after: '', lineStart: true },
+    { id: 'ol', icon: '1.', label: 'Numbered List', before: '1. ', after: '', lineStart: true },
+    { id: 'quote', icon: '❝', label: 'Quote', before: '> ', after: '', lineStart: true },
+    { id: 'hr', icon: '—', label: 'Horizontal Rule', before: '\n---\n', after: '' },
+    { id: 'sep5', type: 'separator' },
+    { id: 'table', icon: '▦', label: 'Table', template: '| Column 1 | Column 2 |\n| -------- | -------- |\n| Cell 1   | Cell 2   |' }
+  ];
+
+  /**
+   * Create editor container with toolbar, textarea, and preview
+   */
+  function createEditorContainer() {
+    // Remove existing editor
+    const existing = document.getElementById(UI_IDS.EDITOR);
+    if (existing) existing.remove();
+
+    const container = document.createElement('div');
+    container.id = UI_IDS.EDITOR;
+    container.className = 'mdv-viewer mdv-editor';
+    Object.assign(container.style, {
+      position: 'fixed',
+      top: '0',
+      left: '0',
+      right: '0',
+      bottom: '0',
+      zIndex: '999991',
+      display: 'flex',
+      flexDirection: 'column',
+      background: 'var(--mdv-bg)'
+    });
+
+    // Generate toolbar HTML
+    const toolbarHTML = EDITOR_TOOLBAR.map(item => {
+      if (item.type === 'separator') {
+        return '<span class="mdv-editor-sep"></span>';
+      }
+      return `<button class="mdv-editor-btn" data-action="${item.id}" title="${item.label}${item.shortcut ? ' (' + item.shortcut + ')' : ''}">${item.icon}</button>`;
+    }).join('');
+
+    container.innerHTML = `
+      <div class="mdv-editor-header">
+        <div class="mdv-editor-toolbar">${toolbarHTML}</div>
+        <div class="mdv-editor-actions">
+          <span class="mdv-editor-status" id="mdv-editor-status"></span>
+          <button class="mdv-editor-btn mdv-editor-save" id="mdv-editor-save" title="Download edited file (Ctrl+S)">💾 Save New File</button>
+          <button class="mdv-editor-btn mdv-editor-close" id="mdv-editor-close" title="Close Editor (Esc)">✕</button>
+        </div>
+      </div>
+      <div class="mdv-editor-body">
+        <div class="mdv-editor-pane mdv-editor-input">
+          <div class="mdv-editor-line-numbers" id="mdv-line-numbers"></div>
+          <textarea class="mdv-editor-textarea" id="mdv-editor-textarea" spellcheck="false" placeholder="Write your markdown here..."></textarea>
+        </div>
+        <div class="mdv-editor-divider"></div>
+        <div class="mdv-editor-pane mdv-editor-preview">
+          <article class="mdv-content" id="mdv-editor-preview"></article>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(container);
+
+    // Setup event listeners
+    setupEditorEvents(container);
+
+    return container;
+  }
+
+  /**
+   * Setup editor event listeners
+   */
+  function setupEditorEvents(container) {
+    const textarea = container.querySelector('#mdv-editor-textarea');
+    const preview = container.querySelector('#mdv-editor-preview');
+    const saveBtn = container.querySelector('#mdv-editor-save');
+    const closeBtn = container.querySelector('#mdv-editor-close');
+    const toolbar = container.querySelector('.mdv-editor-toolbar');
+    const lineNumbers = container.querySelector('#mdv-line-numbers');
+
+    // Initial content
+    textarea.value = state.editedContent || state.rawContent;
+    updateLineNumbers(textarea, lineNumbers);
+    updatePreview(textarea.value, preview);
+
+    // Debounced preview update
+    let previewTimeout;
+    textarea.addEventListener('input', () => {
+      state.editedContent = textarea.value;
+      state.hasUnsavedChanges = textarea.value !== state.rawContent;
+      updateEditorStatus();
+      updateLineNumbers(textarea, lineNumbers);
+
+      clearTimeout(previewTimeout);
+      previewTimeout = setTimeout(() => {
+        updatePreview(textarea.value, preview);
+      }, 300);
+    });
+
+    // Scroll sync for line numbers
+    textarea.addEventListener('scroll', () => {
+      lineNumbers.scrollTop = textarea.scrollTop;
+    });
+
+    // Toolbar actions
+    toolbar.addEventListener('click', (e) => {
+      const btn = e.target.closest('.mdv-editor-btn');
+      if (!btn) return;
+
+      const action = btn.dataset.action;
+      applyToolbarAction(textarea, action);
+      textarea.focus();
+
+      // Trigger input event to update preview
+      textarea.dispatchEvent(new Event('input'));
+    });
+
+    // Save button
+    saveBtn.addEventListener('click', () => saveFile());
+
+    // Close button
+    closeBtn.addEventListener('click', () => {
+      if (state.hasUnsavedChanges) {
+        if (confirm('You have unsaved changes. Discard them?')) {
+          closeEditor();
+        }
+      } else {
+        closeEditor();
+      }
+    });
+
+    // Editor keyboard shortcuts
+    textarea.addEventListener('keydown', handleEditorKeydown);
+
+    // Setup resizable divider
+    setupEditorDivider(container);
+  }
+
+  /**
+   * Update line numbers display
+   */
+  function updateLineNumbers(textarea, lineNumbers) {
+    const lines = textarea.value.split('\n').length;
+    const html = Array.from({ length: lines }, (_, i) => `<span>${i + 1}</span>`).join('');
+    lineNumbers.innerHTML = html;
+  }
+
+  /**
+   * Update preview with rendered markdown
+   */
+  function updatePreview(content, previewEl) {
+    const html = renderMarkdown(content);
+    previewEl.innerHTML = html;
+
+    // Add copy buttons and render mermaid
+    addCopyButtons(previewEl);
+    if (hasMermaid(content)) {
+      renderMermaidDiagrams(previewEl);
+    }
+  }
+
+  /**
+   * Update editor status indicator
+   */
+  function updateEditorStatus() {
+    const statusEl = document.getElementById('mdv-editor-status');
+    if (statusEl) {
+      statusEl.textContent = state.hasUnsavedChanges ? '● Unsaved' : '';
+      statusEl.className = 'mdv-editor-status' + (state.hasUnsavedChanges ? ' unsaved' : '');
+    }
+  }
+
+  /**
+   * Apply toolbar action to textarea
+   */
+  function applyToolbarAction(textarea, actionId) {
+    const action = EDITOR_TOOLBAR.find(a => a.id === actionId);
+    if (!action || action.type === 'separator') return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+    const selectedText = text.substring(start, end);
+
+    let newText, newStart, newEnd;
+
+    if (action.template) {
+      // Template-based (link, image, table)
+      if (action.id === 'link') {
+        const linkText = selectedText || 'text';
+        newText = text.substring(0, start) + `[${linkText}](url)` + text.substring(end);
+        newStart = start + linkText.length + 3;
+        newEnd = newStart + 3;
+      } else if (action.id === 'image') {
+        const altText = selectedText || 'alt';
+        newText = text.substring(0, start) + `![${altText}](url)` + text.substring(end);
+        newStart = start + altText.length + 4;
+        newEnd = newStart + 3;
+      } else {
+        // Table or other templates
+        newText = text.substring(0, start) + action.template + text.substring(end);
+        newStart = start + action.template.length;
+        newEnd = newStart;
+      }
+    } else if (action.lineStart) {
+      // Line-start formatting (headings, lists, quotes)
+      const lineStart = text.lastIndexOf('\n', start - 1) + 1;
+      newText = text.substring(0, lineStart) + action.before + text.substring(lineStart);
+      newStart = start + action.before.length;
+      newEnd = end + action.before.length;
+    } else {
+      // Wrap selection with before/after
+      newText = text.substring(0, start) + action.before + selectedText + action.after + text.substring(end);
+      if (selectedText) {
+        newStart = start + action.before.length;
+        newEnd = end + action.before.length;
+      } else {
+        newStart = start + action.before.length;
+        newEnd = newStart;
+      }
+    }
+
+    textarea.value = newText;
+    textarea.setSelectionRange(newStart, newEnd);
+  }
+
+  /**
+   * Handle editor keyboard shortcuts
+   */
+  function handleEditorKeydown(e) {
+    // Ctrl/Cmd + S to save
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      e.preventDefault();
+      saveFile();
+      return;
+    }
+
+    // Ctrl/Cmd + B for bold
+    if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+      e.preventDefault();
+      applyToolbarAction(e.target, 'bold');
+      e.target.dispatchEvent(new Event('input'));
+      return;
+    }
+
+    // Ctrl/Cmd + I for italic
+    if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
+      e.preventDefault();
+      applyToolbarAction(e.target, 'italic');
+      e.target.dispatchEvent(new Event('input'));
+      return;
+    }
+
+    // Ctrl/Cmd + K for link
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      e.preventDefault();
+      applyToolbarAction(e.target, 'link');
+      e.target.dispatchEvent(new Event('input'));
+      return;
+    }
+
+    // Ctrl/Cmd + ` for inline code
+    if ((e.ctrlKey || e.metaKey) && e.key === '`') {
+      e.preventDefault();
+      applyToolbarAction(e.target, 'code');
+      e.target.dispatchEvent(new Event('input'));
+      return;
+    }
+
+    // Ctrl/Cmd + Shift + K for code block
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'K') {
+      e.preventDefault();
+      applyToolbarAction(e.target, 'codeblock');
+      e.target.dispatchEvent(new Event('input'));
+      return;
+    }
+
+    // Ctrl/Cmd + Shift + S for strikethrough
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'S') {
+      e.preventDefault();
+      applyToolbarAction(e.target, 'strikethrough');
+      e.target.dispatchEvent(new Event('input'));
+      return;
+    }
+
+    // Tab for indent
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const start = e.target.selectionStart;
+      const end = e.target.selectionEnd;
+      const text = e.target.value;
+
+      if (e.shiftKey) {
+        // Unindent - remove leading spaces/tab
+        const lineStart = text.lastIndexOf('\n', start - 1) + 1;
+        const linePrefix = text.substring(lineStart, start);
+        if (linePrefix.startsWith('  ')) {
+          e.target.value = text.substring(0, lineStart) + text.substring(lineStart + 2);
+          e.target.setSelectionRange(start - 2, end - 2);
+        } else if (linePrefix.startsWith('\t')) {
+          e.target.value = text.substring(0, lineStart) + text.substring(lineStart + 1);
+          e.target.setSelectionRange(start - 1, end - 1);
+        }
+      } else {
+        // Indent - add two spaces
+        e.target.value = text.substring(0, start) + '  ' + text.substring(end);
+        e.target.setSelectionRange(start + 2, start + 2);
+      }
+      e.target.dispatchEvent(new Event('input'));
+    }
+  }
+
+  /**
+   * Setup resizable divider for editor
+   */
+  function setupEditorDivider(container) {
+    const divider = container.querySelector('.mdv-editor-divider');
+    const inputPane = container.querySelector('.mdv-editor-input');
+    const previewPane = container.querySelector('.mdv-editor-preview');
+    const body = container.querySelector('.mdv-editor-body');
+
+    if (!divider || !inputPane || !previewPane || !body) return;
+
+    let isResizing = false;
+
+    divider.addEventListener('mousedown', () => {
+      isResizing = true;
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isResizing) return;
+      const bodyRect = body.getBoundingClientRect();
+      const percent = ((e.clientX - bodyRect.left) / bodyRect.width) * 100;
+      const clampedPercent = Math.min(Math.max(percent, 20), 80);
+      inputPane.style.flex = `0 0 ${clampedPercent}%`;
+      previewPane.style.flex = `0 0 ${100 - clampedPercent - 0.5}%`;
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (isResizing) {
+        isResizing = false;
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+      }
+    });
+  }
+
+  /**
+   * Toggle edit mode
+   */
+  function toggleEditMode() {
+    if (state.isEditing) {
+      closeEditor();
+    } else {
+      openEditor();
+    }
+  }
+
+  /**
+   * Open editor
+   */
+  function openEditor() {
+    state.isEditing = true;
+    state.editedContent = state.rawContent;
+    state.hasUnsavedChanges = false;
+
+    // Hide other containers
+    [UI_IDS.REPLACE, UI_IDS.SPLIT, UI_IDS.MODAL, UI_IDS.TOC].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+
+    createEditorContainer();
+    applyViewerStyles();
+
+    // Update edit button text
+    const editBtn = document.getElementById('mdv-edit-toggle');
+    if (editBtn) {
+      editBtn.innerHTML = '<span style="width:20px;display:inline-block">📖</span> View Mode';
+    }
+  }
+
+  /**
+   * Close editor and return to view mode
+   */
+  function closeEditor() {
+    state.isEditing = false;
+
+    // Remove editor container
+    const editor = document.getElementById(UI_IDS.EDITOR);
+    if (editor) editor.remove();
+
+    // Restore view mode
+    if (state.currentMode) {
+      // Re-render with possibly updated content
+      if (state.hasUnsavedChanges && state.editedContent) {
+        state.rawContent = state.editedContent;
+      }
+      setDisplayMode(state.currentMode);
+    } else {
+      // Show the appropriate container
+      [UI_IDS.REPLACE, UI_IDS.SPLIT, UI_IDS.MODAL].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = '';
+      });
+    }
+
+    // Update edit button text
+    const editBtn = document.getElementById('mdv-edit-toggle');
+    if (editBtn) {
+      editBtn.innerHTML = '<span style="width:20px;display:inline-block">✏️</span> Edit File';
+    }
+
+    state.hasUnsavedChanges = false;
+  }
+
+  /**
+   * Save file - downloads the edited content
+   * Note: Direct file write is not possible from file:// protocol due to browser security
+   * Tip: Enable "Ask where to save" in browser settings to choose save location
+   */
+  function saveFile() {
+    downloadFile();
+  }
+
+  /**
+   * Download file - the only way to save from file:// protocol
+   * Browser security prevents direct file writes
+   */
+  function downloadFile() {
+    const textarea = document.getElementById('mdv-editor-textarea');
+    const content = textarea ? textarea.value : state.editedContent;
+    const filename = getFilenameFromPath();
+
+    const blob = new Blob([content], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    // Update state
+    state.rawContent = content;
+    state.hasUnsavedChanges = false;
+    updateEditorStatus();
+
+    showSaveNotification(`Downloaded "${filename}" - replace original to save`, 'info');
+  }
+
+  /**
+   * Get filename from current path
+   */
+  function getFilenameFromPath() {
+    const path = window.location.pathname;
+    const parts = path.split('/');
+    return parts[parts.length - 1] || 'document.md';
+  }
+
+  /**
+   * Show save notification
+   * @param {string} message - Notification message
+   * @param {'success' | 'info'} type - Notification type
+   */
+  function showSaveNotification(message, type = 'success') {
+    const existing = document.getElementById('mdv-save-notification');
+    if (existing) existing.remove();
+
+    const colors = {
+      success: '#22c55e',
+      info: '#3b82f6'
+    };
+
+    const notification = document.createElement('div');
+    notification.id = 'mdv-save-notification';
+    notification.textContent = message;
+    Object.assign(notification.style, {
+      position: 'fixed',
+      bottom: '20px',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      padding: '12px 24px',
+      background: colors[type] || colors.success,
+      color: '#fff',
+      borderRadius: '8px',
+      fontSize: '14px',
+      fontWeight: '500',
+      zIndex: '999999',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+      animation: 'mdv-fade-in 0.2s ease'
+    });
+
+    document.body.appendChild(notification);
+
+    // Info notifications stay longer
+    const duration = type === 'info' ? 3000 : 2000;
+
+    setTimeout(() => {
+      notification.style.opacity = '0';
+      notification.style.transition = 'opacity 0.3s ease';
+      setTimeout(() => notification.remove(), 300);
+    }, duration);
   }
 
   // ==========================================================================
@@ -1707,11 +2265,22 @@
         return;
       }
 
-      // ESC to close help modal first, then viewer
+      // ESC to close help modal first, then editor, then viewer
       if (e.key === 'Escape') {
         if (isHelpModalVisible()) {
           e.preventDefault();
           hideHelpModal();
+          return;
+        }
+        if (state.isEditing) {
+          e.preventDefault();
+          if (state.hasUnsavedChanges) {
+            if (confirm('You have unsaved changes. Discard them?')) {
+              closeEditor();
+            }
+          } else {
+            closeEditor();
+          }
           return;
         }
         if (state.isOpen) {
@@ -1740,6 +2309,14 @@
         } else {
           const mode = getPreference(PREFS.DISPLAY_MODE, DEFAULT_MODE);
           setDisplayMode(mode);
+        }
+      }
+
+      // Ctrl+Shift+E to toggle editor (local files only)
+      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'e') {
+        if (isLocalFile()) {
+          e.preventDefault();
+          toggleEditMode();
         }
       }
 
@@ -2506,6 +3083,220 @@
   .mdv-content pre {
     white-space: pre-wrap;
     word-wrap: break-word;
+  }
+}
+
+/* ==========================================================================
+   Editor Styles (Phase 5)
+   ========================================================================== */
+.mdv-editor {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+}
+
+.mdv-editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  background: var(--mdv-code-bg);
+  border-bottom: 1px solid var(--mdv-border);
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.mdv-editor-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.mdv-editor-sep {
+  width: 1px;
+  height: 24px;
+  background: var(--mdv-border);
+  margin: 0 4px;
+}
+
+.mdv-editor-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--mdv-border);
+  border-radius: 6px;
+  background: var(--mdv-bg);
+  color: var(--mdv-text);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.mdv-editor-btn:hover {
+  background: var(--mdv-btn-hover);
+  border-color: var(--mdv-text-secondary);
+}
+
+.mdv-editor-btn:active {
+  transform: scale(0.95);
+}
+
+.mdv-editor-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mdv-editor-status {
+  font-size: 13px;
+  color: var(--mdv-text-secondary);
+}
+
+.mdv-editor-status.unsaved {
+  color: #f59e0b;
+  font-weight: 500;
+}
+
+.mdv-editor-save {
+  background: #22c55e !important;
+  color: #fff !important;
+  border-color: #16a34a !important;
+}
+
+.mdv-editor-save:hover {
+  background: #16a34a !important;
+}
+
+.mdv-editor-close {
+  font-size: 18px;
+  color: var(--mdv-text-secondary) !important;
+}
+
+.mdv-editor-close:hover {
+  color: var(--mdv-text) !important;
+  background: rgba(239, 68, 68, 0.1) !important;
+  border-color: #ef4444 !important;
+}
+
+.mdv-editor-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.mdv-editor-pane {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+}
+
+.mdv-editor-input {
+  display: flex;
+  background: var(--mdv-code-bg);
+}
+
+.mdv-editor-line-numbers {
+  flex-shrink: 0;
+  width: 48px;
+  padding: 16px 8px 16px 0;
+  text-align: right;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--mdv-text-secondary);
+  background: var(--mdv-code-bg);
+  border-right: 1px solid var(--mdv-border);
+  user-select: none;
+  overflow: hidden;
+}
+
+.mdv-editor-line-numbers span {
+  display: block;
+  opacity: 0.6;
+}
+
+.mdv-editor-textarea {
+  flex: 1;
+  width: 100%;
+  padding: 16px;
+  border: none;
+  outline: none;
+  resize: none;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--mdv-text);
+  background: var(--mdv-code-bg);
+  tab-size: 2;
+}
+
+.mdv-editor-textarea::placeholder {
+  color: var(--mdv-text-secondary);
+  opacity: 0.6;
+}
+
+.mdv-editor-divider {
+  width: 6px;
+  background: var(--mdv-border);
+  cursor: col-resize;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.mdv-editor-divider:hover {
+  background: var(--mdv-link);
+}
+
+.mdv-editor-preview {
+  padding: 20px;
+  background: var(--mdv-bg);
+  overflow: auto;
+}
+
+/* Animation */
+@keyframes mdv-fade-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* Mobile responsive editor */
+@media (max-width: 768px) {
+  .mdv-editor-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .mdv-editor-toolbar {
+    justify-content: center;
+  }
+
+  .mdv-editor-actions {
+    justify-content: center;
+  }
+
+  .mdv-editor-body {
+    flex-direction: column;
+  }
+
+  .mdv-editor-divider {
+    width: 100% !important;
+    height: 4px !important;
+    cursor: row-resize !important;
+  }
+
+  .mdv-editor-line-numbers {
+    display: none;
+  }
+}
+
+/* Print: hide editor */
+@media print {
+  #mdv-editor-container {
+    display: none !important;
   }
 }
     `;
