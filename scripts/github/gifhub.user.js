@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         GIFHub
 // @namespace    https://userjs.khuong.dev
-// @version      1.2.3
+// @version      1.3.0
 // @description  Insert GIFs into GitHub comments, PRs, issues, discussions, and gists
 // @icon64       data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAABmJLR0QA/wD/AP+gvaeTAAAEgElEQVR4nO2bX0wcRRzHP7P3r0BvKX1CbISWlqINtmqijY2J1aJpjTEmxkdF22KiISaNqfah0VdjjKbpQ8uf6otRy5MxKYpAjMbEP4lBoqYCVa6kTRToldvD4+D2xodD4PYGDsLe7VL28/ib2dnvfG/+7cwceHh4bGREvgxNzfEGDfOYgEeBGqCs4KrWxhQwgqAHobV3nAv/ulzmJQ1oaZGhf5Ox94CXAM1mkcXClHDOiOonOjvFjCqD0oBM5Y0ukAcLq684SCH6jBvhwyoTlL9sYjr2/q1SeQAh5SN6RexdZZo10NQcb/Bh9jNnzqmTZdTW+rLyDA2bvP3OVFbM7fkAU5Pa3ra28G+LgzktQMM8tjhuLRxg187cmNvzAb60SB+1BnMMEHBI9fStgWy0RlRjwB1FUOIQotoaURmwuQhKnCJsDeSd34eGzdzYkCLm8nxLkTMLHG2elCt+eh3S0VqeVef1usKzDc8ApwU4jWeA0wKcxjPAaQFO4xngtACn2fAG+AtRaFWVxu46P1u2CJBwc1IyfMVkdDR3jb5vr59wWGAYkv5fUlmx5bh82WRsPL1mrbYasLVC44WmTdxZry72z79MzrclmJhYEP7kEyGqq31EIua8Af/HlqO1PeEuA8JhwRuvl7K1ItOrhq+Y/DGYAgk7d/rYXednx3Yfp06WcfrNOInp/N9c8SnJwEBKmTZuQ+XBRgOefio0X/lPLk7T05u9AfvQgQDPP1dCaSk0NPj58afZvGVOjKe58GHCLolKbDFA0+CB+wMARK6a9PblbsF/+90sf/+TZmTEZCZ/3YuGLQZUVmqEQplBa2AghVyidQ+uYqOiWNhiwOayhRF74kZ239xzl5/6+uwBLZGAS13JvOVWVGg8+8wmZdqlriTxqbXv3dhiQGrROFVSkj191e3ycfjxUFYselOuyABdFzzWGFSmff3NjHsMGF80rd1Wmb22+rk/NZ9+d0OAe/at/JXRaJoexXgCEI/bs3NniwGxmOTa9TS3V2ns3x/ks8+TTM5tLUYiJpFIpu+X69qqDIjFJF92qw2wC9uWwl1fZJp0MAAtL5eybdtCvw8G4L57Axx4MGDX62zDtnXA9z/MUrvDx8GHg9TU+HjrdBmGIUmlJOXlGtqc1cmk5NOL03a9ds3YuhT+6ONpBodMGg8F2V7jm1vPZwbFa9fT9PfP0tM3g2G4Z+e9YOcCoZBA1zMfQzFDkky6o9LWc4GCfA1CpqmPjbmj0sux4fcDPAOcFuA0ngFOC3AazwCnBTiNZ4DTApxmwxuQdyns9hugq7gpqiRvC3D7DdBV3BRVojLAWPHT64+YNaAyYLQIQhxCXrVGcg0QfFUULU4gRbc1pDBAawfmTzDcfgN0FTdFzbSmdViDyjPoF5snzwp4RZW2XpFw5kJr+avWuHIWMKL6CaC34KqKhIAeP/prqjSlAZ2dYiYW1Y8AZ1nUHdYhpoQzGvqR1lahPJLN+7e548eNPZl/WshGEDW4/zp9HOQIUnSnNa3jg/Ph350W5OHh4V7+A+/CxwJr0S9qAAAAAElFTkSuQmCC
 // @author       Lam Ngoc Khuong
@@ -228,6 +228,7 @@
             min-height: 200px;
         }
         .gif-picker-item {
+            position: relative;
             border-radius: 8px;
             overflow: hidden;
             cursor: pointer;
@@ -247,6 +248,46 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+        }
+        .gif-picker-item-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            background: rgba(0,0,0,0.7);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .gif-picker-item:hover .gif-picker-item-overlay,
+        .gif-picker-item:focus .gif-picker-item-overlay {
+            opacity: 1;
+        }
+        .gif-picker-action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.1s;
+            min-width: 80px;
+        }
+        .gif-picker-action-btn:hover {
+            transform: scale(1.05);
+        }
+        .gif-picker-action-btn.insert {
+            background: var(--bgColor-success-emphasis, #1f883d);
+            color: #fff;
+        }
+        .gif-picker-action-btn.copy {
+            background: var(--bgColor-accent-emphasis, #0969da);
+            color: #fff;
+        }
+        .gif-picker-action-btn.copied {
+            background: var(--bgColor-success-emphasis, #1f883d);
         }
         .gif-picker-loading,
         .gif-picker-empty,
@@ -478,6 +519,8 @@
 
     if (!gifUrl || !previewUrl) return;
 
+    const markdown = `![${title}](${gifUrl})`;
+
     const item = document.createElement('div');
     item.className = 'gif-picker-item';
     item.tabIndex = 0;
@@ -497,20 +540,54 @@
 
     item.appendChild(img);
 
-    const selectGif = () => {
-      // Clean up blob URL
-      if (item._blobUrl) {
-        URL.revokeObjectURL(item._blobUrl);
-      }
-      insertGif(gifUrl, title);
-      closeModal();
-    };
+    // Overlay with action buttons
+    const overlay = document.createElement('div');
+    overlay.className = 'gif-picker-item-overlay';
 
-    item.addEventListener('click', selectGif);
+    // Insert button (only show if textarea is available)
+    if (currentTextarea) {
+      const insertBtn = document.createElement('button');
+      insertBtn.type = 'button';
+      insertBtn.className = 'gif-picker-action-btn insert';
+      insertBtn.textContent = 'Insert';
+      insertBtn.title = 'Insert GIF into textarea';
+      insertBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (item._blobUrl) URL.revokeObjectURL(item._blobUrl);
+        insertGif(gifUrl, title);
+        closeModal();
+      });
+      overlay.appendChild(insertBtn);
+    }
+
+    // Copy button
+    const copyBtn = document.createElement('button');
+    copyBtn.type = 'button';
+    copyBtn.className = 'gif-picker-action-btn copy';
+    copyBtn.textContent = 'Copy';
+    copyBtn.title = 'Copy markdown to clipboard';
+    copyBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      navigator.clipboard.writeText(markdown).then(() => {
+        copyBtn.textContent = 'Copied!';
+        copyBtn.classList.add('copied');
+        setTimeout(() => {
+          copyBtn.textContent = 'Copy';
+          copyBtn.classList.remove('copied');
+        }, 1500);
+      });
+    });
+    overlay.appendChild(copyBtn);
+
+    item.appendChild(overlay);
+
+    // Keyboard support for insert (Enter key)
     item.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
+      if ((e.key === 'Enter' || e.key === ' ') && currentTextarea) {
         e.preventDefault();
-        selectGif();
+        if (item._blobUrl) URL.revokeObjectURL(item._blobUrl);
+        insertGif(gifUrl, title);
+        closeModal();
       }
     });
 

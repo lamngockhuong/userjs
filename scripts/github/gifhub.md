@@ -6,6 +6,7 @@ Insert GIFs directly into GitHub comments, PRs, issues, discussions, and gists w
 
 - **GIF Button** - Adds a "GIF" button to GitHub's markdown toolbar
 - **Search GIFs** - Search from Giphy's extensive GIF library
+- **Insert or Copy** - Click to insert directly, or copy markdown to clipboard for manual paste
 - **CSP-Safe** - Bypasses GitHub's Content Security Policy using blob URLs
 - **Vietnamese Support** - Automatically converts Vietnamese diacritics to ASCII for better search
   results
@@ -17,7 +18,9 @@ Insert GIFs directly into GitHub comments, PRs, issues, discussions, and gists w
 1. Navigate to any GitHub page with a comment box (PR, Issue, Discussion)
 2. Click the **GIF** button in the markdown toolbar
 3. Search for a GIF using keywords (English or Vietnamese)
-4. Click on a GIF to insert it into your comment
+4. Hover over a GIF to see action buttons:
+   - **Insert** - Insert directly into the textarea
+   - **Copy** - Copy markdown to clipboard (useful for modal dialogs where insert may fail)
 
 ## Supported Locations
 
@@ -44,6 +47,12 @@ Insert GIFs directly into GitHub comments, PRs, issues, discussions, and gists w
 | `@connect *`                                    | Fetch GIF images from Giphy CDN             |
 
 ## Changelog
+
+### v1.3.0
+
+- Added "Copy" button to copy GIF markdown to clipboard
+- Hover overlay with "Insert" and "Copy" action buttons
+- Fixes issue where direct insert fails in GitHub modal dialogs (approve, comment)
 
 ### v1.2.3
 
