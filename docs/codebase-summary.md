@@ -2,7 +2,7 @@
 
 ## Project Structure
 
-```
+```bash
 userjs/
 │
 ├── src/
@@ -14,7 +14,25 @@ userjs/
 │   ├── pages/          # Page Components
 │   │   ├── Home.vue
 │   │   ├── ScriptDetail.vue
-│   │   └── Bookmarks.vue
+│   │   ├── Bookmarks.vue
+│   │   └── NotFound.vue
+│   │
+│   ├── components/     # Reusable UI Components
+│   │   ├── Header.vue
+│   │   ├── Footer.vue
+│   │   ├── SearchBar.vue
+│   │   ├── ScriptCard.vue
+│   │   ├── BookmarkCard.vue
+│   │   ├── InstallBanner.vue
+│   │   └── ImageLightbox.vue  # Image viewer with zoom/rotate/nav
+│   │
+│   ├── composables/    # Vue Composition Functions
+│   │   ├── useScripts.ts
+│   │   ├── useBookmarks.ts
+│   │   ├── useSearch.ts
+│   │   ├── useDarkMode.ts
+│   │   ├── useKeyboardShortcuts.ts
+│   │   └── useUserscriptManager.ts
 │   │
 │   ├── types/          # TypeScript Type Definitions
 │   │   └── script.ts
@@ -81,6 +99,12 @@ userjs/
 - Optional Markdown Documentation per Script
   - Place `.md` file alongside `.user.js` (same name)
   - Rendered on ScriptDetail page if available
+- Image Lightbox in Documentation
+  - Click images to open full-screen viewer
+  - Navigate: ←/→ arrow keys or side buttons
+  - Zoom: scroll wheel or +/- keys
+  - Rotate: R key
+  - Reset: 0 key, Close: ESC
 - Enhanced Bookmarks
   - Source badge auto-detection (GreasyFork, OpenUserJS, GitHub)
   - Tags support via `#hashtag` format in BOOKMARKS.md

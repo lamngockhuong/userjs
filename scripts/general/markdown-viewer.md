@@ -52,12 +52,12 @@ Render and edit markdown files from local (file://) or raw URLs with full GFM su
 - **Split**: Side-by-side raw and rendered view (resizable)
 - **Modal**: Full-screen overlay modal
 
-| Replace Mode                                              | Split Mode                                            |
-| --------------------------------------------------------- | ----------------------------------------------------- |
+| Replace Mode                                                                                                    | Split Mode                                                                                                  |
+| --------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | ![Replace](https://raw.githubusercontent.com/lamngockhuong/userjs/main/docs/images/markdown-viewer-replace.png) | ![Split](https://raw.githubusercontent.com/lamngockhuong/userjs/main/docs/images/markdown-viewer-split.png) |
 
-| Modal Mode                                            | Floating Button                                           |
-| ----------------------------------------------------- | --------------------------------------------------------- |
+| Modal Mode                                                                                                  | Floating Button                                                                                                 |
+| ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
 | ![Modal](https://raw.githubusercontent.com/lamngockhuong/userjs/main/docs/images/markdown-viewer-modal.png) | ![Button](https://raw.githubusercontent.com/lamngockhuong/userjs/main/docs/images/markdown-viewer-dropdown.png) |
 
 ### Theme Options

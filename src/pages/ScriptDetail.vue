@@ -12,6 +12,7 @@ import {
 import { marked } from 'marked'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import ImageLightbox from '@/components/ImageLightbox.vue'
 import { useScripts } from '@/composables/useScripts'
 import { BASE_TITLE } from '@/router'
 
@@ -80,6 +81,16 @@ const copyError = ref(false)
 const codePreviewRef = ref<HTMLElement | null>(null)
 const readmeHtml = ref('')
 const loadingReadme = ref(false)
+const readmeContainerRef = ref<HTMLElement | null>(null)
+
+// Lightbox state
+interface LightboxImage {
+  src: string
+  alt: string
+}
+const lightboxImages = ref<LightboxImage[]>([])
+const lightboxInitialIndex = ref(0)
+const showLightbox = ref(false)
 
 // Validate route params (alphanumeric, dash, underscore, dot only)
 const isValidParam = (param: string) => /^[\w\-.]+$/.test(param)
@@ -277,6 +288,44 @@ async function copyCode() {
     }, 2000)
   }
 }
+
+// Lightbox: handle image clicks via event delegation
+function handleReadmeClick(e: MouseEvent) {
+  const target = e.target as HTMLElement
+  if (target.tagName !== 'IMG') return
+
+  const container = readmeContainerRef.value
+  if (!container) return
+
+  // Collect all images in readme
+  const allImages = Array.from(container.querySelectorAll('img'))
+  lightboxImages.value = allImages.map((img) => ({
+    src: img.src,
+    alt: img.alt || '',
+  }))
+
+  // Find clicked image index
+  const clickedImg = target as HTMLImageElement
+  const index = allImages.findIndex((img) => img.src === clickedImg.src)
+  lightboxInitialIndex.value = index >= 0 ? index : 0
+
+  showLightbox.value = true
+}
+
+function closeLightbox() {
+  showLightbox.value = false
+  lightboxImages.value = []
+}
+
+// Setup event delegation for readme images
+watch(readmeContainerRef, (container, _, onCleanup) => {
+  if (container) {
+    container.addEventListener('click', handleReadmeClick)
+    onCleanup(() => {
+      container.removeEventListener('click', handleReadmeClick)
+    })
+  }
+})
 </script>
 
 <template>
@@ -333,9 +382,10 @@ async function copyCode() {
         </h2>
         <div v-if="loadingReadme" class="text-slate-500">Loading documentation...</div>
         <div v-else
+             ref="readmeContainerRef"
              class="prose prose-slate dark:prose-invert max-w-none
                     prose-headings:font-semibold prose-a:text-blue-500
-                    prose-img:rounded-lg prose-img:shadow-md
+                    prose-img:rounded-lg prose-img:shadow-md prose-img:cursor-zoom-in
                     prose-code:bg-slate-100 prose-code:dark:bg-slate-700 prose-code:px-1 prose-code:rounded"
              v-html="readmeHtml" />
       </section>
@@ -379,5 +429,13 @@ async function copyCode() {
       <p class="text-xl text-slate-500 mb-4">Script not found</p>
       <router-link to="/" class="text-blue-500 hover:underline">Back to home</router-link>
     </div>
+
+    <!-- Image Lightbox -->
+    <ImageLightbox
+      v-if="showLightbox && lightboxImages.length > 0"
+      :images="lightboxImages"
+      :initial-index="lightboxInitialIndex"
+      @close="closeLightbox"
+    />
   </main>
 </template>

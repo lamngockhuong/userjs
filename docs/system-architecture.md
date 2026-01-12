@@ -51,6 +51,12 @@
   - Supports category filtering
 - `Footer`: Application footer with brand, links, divider, and copyright
 - `InstallBanner`: Userscript manager installation prompt (dismiss via X button)
+- `ImageLightbox`: Full-screen image viewer for documentation images
+  - Navigation: prev/next buttons, ←/→ arrow keys
+  - Zoom: scroll wheel, +/- keys, toolbar buttons
+  - Rotate: R key, toolbar button
+  - Download button
+  - Keyboard: ESC close, 0 reset view
 - `ErrorBoundary`: Handles search operation errors
 
 ### Pages
@@ -62,6 +68,7 @@
 - `ScriptDetail`: Individual script preview page
   - Shows full script code with syntax highlighting
   - Renders optional markdown readme if available
+  - Image lightbox for documentation screenshots (click to expand)
   - Provides script metadata
 
 - `Bookmarks`: External userscripts collection page

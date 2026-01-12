@@ -1,35 +1,6 @@
 {
   "scripts": [
     {
-      "name": "PR Merge Control",
-      "version": "1.4",
-      "description": "Automatically disable regular/squash merge on target branch for GitHub PRs",
-      "author": "Lam Ngoc Khuong",
-      "category": "github",
-      "filename": "pr-merge-control.user.js",
-      "matches": [
-        "https://github.com/*/pull/*"
-      ],
-      "installUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/github/pr-merge-control.user.js",
-      "sourceUrl": "https://github.com/lamngockhuong/userjs/blob/main/scripts/github/pr-merge-control.user.js",
-      "readmeUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/github/pr-merge-control.md"
-    },
-    {
-      "name": "GIFHub",
-      "version": "1.2.3",
-      "description": "Insert GIFs into GitHub comments, PRs, issues, discussions, and gists",
-      "author": "Lam Ngoc Khuong",
-      "category": "github",
-      "filename": "gifhub.user.js",
-      "matches": [
-        "https://github.com/*",
-        "https://gist.github.com/*"
-      ],
-      "installUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/github/gifhub.user.js",
-      "sourceUrl": "https://github.com/lamngockhuong/userjs/blob/main/scripts/github/gifhub.user.js",
-      "readmeUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/github/gifhub.md"
-    },
-    {
       "name": "Markdown Viewer",
       "version": "1.4.0",
       "description": "Render and edit markdown files from local or raw URLs with full GFM support",
@@ -78,6 +49,35 @@
       "installUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/general/change-translate-attribute.user.js",
       "sourceUrl": "https://github.com/lamngockhuong/userjs/blob/main/scripts/general/change-translate-attribute.user.js",
       "readmeUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/general/change-translate-attribute.md"
+    },
+    {
+      "name": "PR Merge Control",
+      "version": "1.4",
+      "description": "Automatically disable regular/squash merge on target branch for GitHub PRs",
+      "author": "Lam Ngoc Khuong",
+      "category": "github",
+      "filename": "pr-merge-control.user.js",
+      "matches": [
+        "https://github.com/*/pull/*"
+      ],
+      "installUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/github/pr-merge-control.user.js",
+      "sourceUrl": "https://github.com/lamngockhuong/userjs/blob/main/scripts/github/pr-merge-control.user.js",
+      "readmeUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/github/pr-merge-control.md"
+    },
+    {
+      "name": "GIFHub",
+      "version": "1.2.3",
+      "description": "Insert GIFs into GitHub comments, PRs, issues, discussions, and gists",
+      "author": "Lam Ngoc Khuong",
+      "category": "github",
+      "filename": "gifhub.user.js",
+      "matches": [
+        "https://github.com/*",
+        "https://gist.github.com/*"
+      ],
+      "installUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/github/gifhub.user.js",
+      "sourceUrl": "https://github.com/lamngockhuong/userjs/blob/main/scripts/github/gifhub.user.js",
+      "readmeUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/github/gifhub.md"
     }
   ],
   "bookmarks": [
