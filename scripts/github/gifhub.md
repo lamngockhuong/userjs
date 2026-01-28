@@ -48,6 +48,12 @@ Insert GIFs directly into GitHub comments, PRs, issues, discussions, and gists w
 
 ## Changelog
 
+### v1.3.1
+
+- Optimized URL matching to only run on pages with comment boxes (issues, PRs, discussions, commits,
+  compare, gists)
+- Script no longer loads on repository homepage, code browser, settings, or profile pages
+
 ### v1.3.0
 
 - Added "Copy" button to copy GIF markdown to clipboard

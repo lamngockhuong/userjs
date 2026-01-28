@@ -1,12 +1,16 @@
 // ==UserScript==
 // @name         GIFHub
 // @namespace    https://userjs.khuong.dev
-// @version      1.3.0
+// @version      1.3.1
 // @description  Insert GIFs into GitHub comments, PRs, issues, discussions, and gists
 // @icon64       data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAABmJLR0QA/wD/AP+gvaeTAAAEgElEQVR4nO2bX0wcRRzHP7P3r0BvKX1CbISWlqINtmqijY2J1aJpjTEmxkdF22KiISaNqfah0VdjjKbpQ8uf6otRy5MxKYpAjMbEP4lBoqYCVa6kTRToldvD4+D2xodD4PYGDsLe7VL28/ib2dnvfG/+7cwceHh4bGREvgxNzfEGDfOYgEeBGqCs4KrWxhQwgqAHobV3nAv/ulzmJQ1oaZGhf5Ox94CXAM1mkcXClHDOiOonOjvFjCqD0oBM5Y0ukAcLq684SCH6jBvhwyoTlL9sYjr2/q1SeQAh5SN6RexdZZo10NQcb/Bh9jNnzqmTZdTW+rLyDA2bvP3OVFbM7fkAU5Pa3ra28G+LgzktQMM8tjhuLRxg187cmNvzAb60SB+1BnMMEHBI9fStgWy0RlRjwB1FUOIQotoaURmwuQhKnCJsDeSd34eGzdzYkCLm8nxLkTMLHG2elCt+eh3S0VqeVef1usKzDc8ApwU4jWeA0wKcxjPAaQFO4xngtACn2fAG+AtRaFWVxu46P1u2CJBwc1IyfMVkdDR3jb5vr59wWGAYkv5fUlmx5bh82WRsPL1mrbYasLVC44WmTdxZry72z79MzrclmJhYEP7kEyGqq31EIua8Af/HlqO1PeEuA8JhwRuvl7K1ItOrhq+Y/DGYAgk7d/rYXednx3Yfp06WcfrNOInp/N9c8SnJwEBKmTZuQ+XBRgOefio0X/lPLk7T05u9AfvQgQDPP1dCaSk0NPj58afZvGVOjKe58GHCLolKbDFA0+CB+wMARK6a9PblbsF/+90sf/+TZmTEZCZ/3YuGLQZUVmqEQplBa2AghVyidQ+uYqOiWNhiwOayhRF74kZ239xzl5/6+uwBLZGAS13JvOVWVGg8+8wmZdqlriTxqbXv3dhiQGrROFVSkj191e3ycfjxUFYselOuyABdFzzWGFSmff3NjHsMGF80rd1Wmb22+rk/NZ9+d0OAe/at/JXRaJoexXgCEI/bs3NniwGxmOTa9TS3V2ns3x/ks8+TTM5tLUYiJpFIpu+X69qqDIjFJF92qw2wC9uWwl1fZJp0MAAtL5eybdtCvw8G4L57Axx4MGDX62zDtnXA9z/MUrvDx8GHg9TU+HjrdBmGIUmlJOXlGtqc1cmk5NOL03a9ds3YuhT+6ONpBodMGg8F2V7jm1vPZwbFa9fT9PfP0tM3g2G4Z+e9YOcCoZBA1zMfQzFDkky6o9LWc4GCfA1CpqmPjbmj0sux4fcDPAOcFuA0ngFOC3AazwCnBTiNZ4DTApxmwxuQdyns9hugq7gpqiRvC3D7DdBV3BRVojLAWPHT64+YNaAyYLQIQhxCXrVGcg0QfFUULU4gRbc1pDBAawfmTzDcfgN0FTdFzbSmdViDyjPoF5snzwp4RZW2XpFw5kJr+avWuHIWMKL6CaC34KqKhIAeP/prqjSlAZ2dYiYW1Y8AZ1nUHdYhpoQzGvqR1lahPJLN+7e548eNPZl/WshGEDW4/zp9HOQIUnSnNa3jg/Ph350W5OHh4V7+A+/CxwJr0S9qAAAAAElFTkSuQmCC
 // @author       Lam Ngoc Khuong
-// @match        https://github.com/*
-// @match        https://gist.github.com/*
+// @match        https://github.com/*/*/issues/*
+// @match        https://github.com/*/*/pull/*
+// @match        https://github.com/*/*/discussions/*
+// @match        https://github.com/*/*/commit/*
+// @match        https://github.com/*/*/compare/*
+// @match        https://gist.github.com/*/*
 // @grant        GM_xmlhttpRequest
 // @grant        GM.xmlHttpRequest
 // @connect      github-gifs.aldilaff6545.workers.dev
