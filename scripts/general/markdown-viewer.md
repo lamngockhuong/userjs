@@ -137,14 +137,27 @@ For `file://` URLs to work, enable file access in your browser:
 
 ## Known Limitations
 
-### Chrome + GitHub Raw URLs
+### Chrome + GitHub/Gist/Slack URLs
 
-Chrome's strict sandbox blocks userscript managers on `raw.githubusercontent.com`. The script won't
-run.
+Chrome's strict CSP blocks userscript managers on these domains:
 
-**Workaround:** Use Firefox for GitHub raw URLs.
+- `raw.githubusercontent.com` (GitHub raw)
+- `gist.githubusercontent.com` (GitHub Gist)
+- `files.slack.com` (Slack files)
 
-Other sources (file://, GitLab, Bitbucket, Gist, Slack) work fine on Chrome.
+**Workarounds:**
+
+1. **Use Firefox** (recommended) - Works without any extensions
+2. **Use CSP Disable extension** on Chrome:
+   - Install
+     [Disable Content-Security-Policy](https://chromewebstore.google.com/detail/disable-content-security/ieelmcmcagommplceebfedjlakkhpden)
+   - Open the markdown URL
+   - Click extension icon (shield) → Enable
+   - Refresh page (F5)
+   - **Security:** Only enable when needed, disable after use
+   - [Source code](https://github.com/PhilGrayson/chrome-csp-disable)
+
+Other sources (file://, GitLab, Bitbucket) work fine on Chrome.
 
 ### Editor Save
 
