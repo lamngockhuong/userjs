@@ -29,6 +29,7 @@ Render and edit markdown files from local (file://) or raw URLs with full GFM su
 | GitHub Gist | `gist.githubusercontent.com/*` | Supports private gists             |
 | GitLab raw  | `gitlab.com/*/-/raw/*`         | Supports private files with tokens |
 | Bitbucket   | `bitbucket.org/*/raw/*`        | Supports private files with tokens |
+| Slack files | `files.slack.com/*/*/*.md`     | Shared markdown files in Slack     |
 
 ## Usage
 
@@ -143,7 +144,7 @@ run.
 
 **Workaround:** Use Firefox for GitHub raw URLs.
 
-Other sources (file://, GitLab, Bitbucket, Gist) work fine on Chrome.
+Other sources (file://, GitLab, Bitbucket, Gist, Slack) work fine on Chrome.
 
 ### Editor Save
 

@@ -17,6 +17,7 @@
 // @match        *://gitlab.com/*/-/raw/*.markdown*
 // @match        *://bitbucket.org/*/raw/*.md*
 // @match        *://bitbucket.org/*/raw/*.markdown*
+// @match        *://files.slack.com/*/*/*.md*
 // @grant        GM_addStyle
 // @grant        GM_getValue
 // @grant        GM_setValue

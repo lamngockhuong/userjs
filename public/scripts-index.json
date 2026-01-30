@@ -50,7 +50,8 @@
         "*://gitlab.com/*/-/raw/*.md*",
         "*://gitlab.com/*/-/raw/*.markdown*",
         "*://bitbucket.org/*/raw/*.md*",
-        "*://bitbucket.org/*/raw/*.markdown*"
+        "*://bitbucket.org/*/raw/*.markdown*",
+        "*://files.slack.com/*/*/*.md*"
       ],
       "installUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/general/markdown-viewer.user.js",
       "sourceUrl": "https://github.com/lamngockhuong/userjs/blob/main/scripts/general/markdown-viewer.user.js",
