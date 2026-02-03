@@ -15,6 +15,22 @@
       "readmeUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/github/pr-merge-control.md"
     },
     {
+      "name": "GitHub Zen Mode",
+      "version": "1.0",
+      "description": "Distraction-free reading with full-width content and toggleable sidebar",
+      "author": "Lam Ngoc Khuong",
+      "category": "github",
+      "filename": "github-zen-mode.user.js",
+      "matches": [
+        "https://github.com/*/issues/*",
+        "https://github.com/*/pull/*",
+        "https://github.com/*/discussions/*"
+      ],
+      "installUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/github/github-zen-mode.user.js",
+      "sourceUrl": "https://github.com/lamngockhuong/userjs/blob/main/scripts/github/github-zen-mode.user.js",
+      "readmeUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/github/github-zen-mode.md"
+    },
+    {
       "name": "GIFHub",
       "version": "1.3.1",
       "description": "Insert GIFs into GitHub comments, PRs, issues, discussions, and gists",
