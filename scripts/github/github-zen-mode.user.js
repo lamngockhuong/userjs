@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         GitHub Zen Mode
 // @namespace    https://userjs.khuong.dev
-// @version      1.0
+// @version      1.1
 // @description  Distraction-free reading with full-width content and toggleable sidebar
 // @icon64       data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMyNDI5MmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSIzIiB5PSIzIiB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHJ4PSIyIi8+PHBhdGggZD0iTTE1IDN2MTgiLz48cGF0aCBkPSJtOCA5IDMgMy0zIDMiLz48L3N2Zz4=
 // @author       Lam Ngoc Khuong
@@ -35,6 +35,16 @@
     sidebar: '#partial-discussion-sidebar'
   };
 
+  // Layout 4: PageLayout (React - newer PR/Issues)
+  // Note: GitHub uses PascalCase (Pane, Content) not lowercase
+  const SELECTORS_PAGELAYOUT = {
+    root: '[class*="prc-PageLayout-PageLayoutRoot"]',
+    contentWrapper: '[class*="prc-PageLayout-ContentWrapper"]',
+    content: '[class*="prc-PageLayout-Content-"]',
+    paneWrapper: '[class*="prc-PageLayout-PaneWrapper"]',
+    pane: '[class*="prc-PageLayout-Pane-"]'
+  };
+
   const STORAGE_KEY = 'github-zen-mode-sidebar-hidden';
   const ANIMATION_MS = 250;
   const BUTTON_ID = 'gh-zen-toggle-btn';
@@ -51,6 +61,7 @@
   }
 
   function detectLayout() {
+    if (document.querySelector(SELECTORS_PAGELAYOUT.paneWrapper)) return 'pagelayout';
     if (document.querySelector(SELECTORS_NEW.sidebar)) return 'new';
     if (document.querySelector(SELECTORS_LAYOUT.sidebar)) return 'layout';
     if (document.querySelector(SELECTORS_DISCUSSION.sidebar)) return 'discussion';
@@ -59,6 +70,7 @@
 
   function getSidebar() {
     return (
+      document.querySelector(SELECTORS_PAGELAYOUT.paneWrapper) ||
       document.querySelector(SELECTORS_NEW.sidebar) ||
       document.querySelector(SELECTORS_LAYOUT.sidebar) ||
       document.querySelector(SELECTORS_DISCUSSION.sidebar)
@@ -147,6 +159,34 @@
       /* When discussion sidebar hidden, main content expands */
       ${SELECTORS_DISCUSSION.container}:has(${SELECTORS_DISCUSSION.sidebar}.${HIDDEN_CLASS}) > .col-md-9 {
         flex: 0 0 100% !important;
+        max-width: 100% !important;
+      }
+
+      /* === Layout 4: PageLayout (React) === */
+      /* Hide the pane wrapper (contains sidebar) */
+      ${SELECTORS_PAGELAYOUT.paneWrapper}.${HIDDEN_CLASS} {
+        display: none !important;
+      }
+
+      /* Override pane width CSS custom properties when hidden */
+      @layer primer-react {
+        [class*="prc-PageLayout-PageLayoutRoot"]:has(${SELECTORS_PAGELAYOUT.paneWrapper}.${HIDDEN_CLASS}) {
+          --pane-width-small: 0px !important;
+          --pane-width-medium: 0px !important;
+          --pane-width-large: 0px !important;
+          --pane-max-width-diff: 0px !important;
+        }
+      }
+
+      /* Expand content when pane is hidden */
+      [class*="prc-PageLayout-PageLayoutContent"]:has(${SELECTORS_PAGELAYOUT.paneWrapper}.${HIDDEN_CLASS}) ${SELECTORS_PAGELAYOUT.contentWrapper},
+      [class*="prc-PageLayout-PageLayoutContent"]:has(${SELECTORS_PAGELAYOUT.paneWrapper}.${HIDDEN_CLASS}) ${SELECTORS_PAGELAYOUT.content} {
+        max-width: 100% !important;
+        flex: 1 1 100% !important;
+      }
+
+      /* Expand container-xl to full width when PageLayout pane is hidden */
+      .container-xl:has(${SELECTORS_PAGELAYOUT.paneWrapper}.${HIDDEN_CLASS}) {
         max-width: 100% !important;
       }
 
@@ -286,7 +326,7 @@
     applySidebarState();
     setupKeyboardShortcut();
     observeNavigation();
-    console.log('[GitHub Zen Mode] v1.0 Initialized - Layout:', detectLayout() || 'pending');
+    console.log('[GitHub Zen Mode] v1.1 Initialized - Layout:', detectLayout() || 'pending');
   }
 
   if (document.readyState === 'loading') {
