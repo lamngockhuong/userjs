@@ -13,7 +13,8 @@
       "!!**/scripts/**/*.user.js",
       "!!**/public/scripts",
       "!!**/*.css",
-      "!!**/scripts-index.json"
+      "!!**/scripts-index.json",
+      "!!.claude/settings.local.json"
     ]
   },
   "formatter": {
