@@ -27,7 +27,7 @@
     style.textContent = `
       .${EXPANDED_CLASS} {
         max-width: none !important;
-        width: auto !important;
+        width: max-content !important;
       }
 
       .gh-table-wrapper {
