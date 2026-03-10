@@ -22,29 +22,29 @@
     "test:e2e:report": "playwright show-report"
   },
   "dependencies": {
-    "@shikijs/langs": "3.22.0",
-    "@shikijs/themes": "3.22.0",
+    "@shikijs/langs": "4.0.2",
+    "@shikijs/themes": "4.0.2",
     "@tailwindcss/typography": "0.5.19",
     "fuse.js": "7.1.0",
-    "lucide-vue-next": "0.575.0",
-    "marked": "17.0.1",
-    "shiki": "3.22.0",
-    "vue": "3.5.27",
-    "vue-router": "5.0.2"
+    "lucide-vue-next": "0.577.0",
+    "marked": "17.0.4",
+    "shiki": "4.0.2",
+    "vue": "3.5.30",
+    "vue-router": "5.0.3"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.3.14",
+    "@biomejs/biome": "2.4.6",
     "@playwright/test": "1.58.2",
-    "@tailwindcss/vite": "4.1.18",
-    "@types/node": "25.2.2",
+    "@tailwindcss/vite": "4.2.1",
+    "@types/node": "25.4.0",
     "@vitejs/plugin-vue": "6.0.4",
-    "glob": "13.0.1",
+    "glob": "13.0.6",
     "playwright": "1.58.2",
     "prettier": "3.8.1",
-    "tailwindcss": "4.1.18",
+    "tailwindcss": "4.2.1",
     "tsx": "4.21.0",
     "typescript": "5.9.3",
     "vite": "7.3.1",
-    "vue-tsc": "3.2.4"
+    "vue-tsc": "3.2.5"
   }
 }

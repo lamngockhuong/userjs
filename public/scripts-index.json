@@ -1,57 +1,6 @@
 {
   "scripts": [
     {
-      "name": "Markdown Viewer",
-      "version": "1.4.1",
-      "description": "Render and edit markdown files from local or raw URLs with full GFM support",
-      "author": "Lam Ngoc Khuong",
-      "category": "general",
-      "filename": "markdown-viewer.user.js",
-      "matches": [
-        "file:///*.md",
-        "file:///*.markdown",
-        "*://raw.githubusercontent.com/*.md*",
-        "*://raw.githubusercontent.com/*.markdown*",
-        "*://gist.githubusercontent.com/*.md*",
-        "*://gist.githubusercontent.com/*.markdown*",
-        "*://gitlab.com/*/-/raw/*.md*",
-        "*://gitlab.com/*/-/raw/*.markdown*",
-        "*://bitbucket.org/*/raw/*.md*",
-        "*://bitbucket.org/*/raw/*.markdown*",
-        "*://files.slack.com/*/*/*.md*"
-      ],
-      "installUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/general/markdown-viewer.user.js",
-      "sourceUrl": "https://github.com/lamngockhuong/userjs/blob/main/scripts/general/markdown-viewer.user.js",
-      "readmeUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/general/markdown-viewer.md"
-    },
-    {
-      "name": "Hello World",
-      "version": "1.0.0",
-      "description": "A sample userscript that logs a greeting message",
-      "author": "Lam Ngoc Khuong",
-      "category": "general",
-      "filename": "hello-world.user.js",
-      "matches": [
-        "https://*/*"
-      ],
-      "installUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/general/hello-world.user.js",
-      "sourceUrl": "https://github.com/lamngockhuong/userjs/blob/main/scripts/general/hello-world.user.js"
-    },
-    {
-      "name": "Change Translate Attribute",
-      "version": "0.3",
-      "description": "Change translate=\"no\" to translate=\"yes\"",
-      "author": "Lam Ngoc Khuong",
-      "category": "general",
-      "filename": "change-translate-attribute.user.js",
-      "matches": [
-        "*://*/*"
-      ],
-      "installUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/general/change-translate-attribute.user.js",
-      "sourceUrl": "https://github.com/lamngockhuong/userjs/blob/main/scripts/general/change-translate-attribute.user.js",
-      "readmeUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/general/change-translate-attribute.md"
-    },
-    {
       "name": "PR Merge Control",
       "version": "1.4",
       "description": "Automatically disable regular/squash merge on target branch for GitHub PRs",
@@ -114,6 +63,57 @@
       "installUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/github/gifhub.user.js",
       "sourceUrl": "https://github.com/lamngockhuong/userjs/blob/main/scripts/github/gifhub.user.js",
       "readmeUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/github/gifhub.md"
+    },
+    {
+      "name": "Markdown Viewer",
+      "version": "1.4.1",
+      "description": "Render and edit markdown files from local or raw URLs with full GFM support",
+      "author": "Lam Ngoc Khuong",
+      "category": "general",
+      "filename": "markdown-viewer.user.js",
+      "matches": [
+        "file:///*.md",
+        "file:///*.markdown",
+        "*://raw.githubusercontent.com/*.md*",
+        "*://raw.githubusercontent.com/*.markdown*",
+        "*://gist.githubusercontent.com/*.md*",
+        "*://gist.githubusercontent.com/*.markdown*",
+        "*://gitlab.com/*/-/raw/*.md*",
+        "*://gitlab.com/*/-/raw/*.markdown*",
+        "*://bitbucket.org/*/raw/*.md*",
+        "*://bitbucket.org/*/raw/*.markdown*",
+        "*://files.slack.com/*/*/*.md*"
+      ],
+      "installUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/general/markdown-viewer.user.js",
+      "sourceUrl": "https://github.com/lamngockhuong/userjs/blob/main/scripts/general/markdown-viewer.user.js",
+      "readmeUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/general/markdown-viewer.md"
+    },
+    {
+      "name": "Hello World",
+      "version": "1.0.0",
+      "description": "A sample userscript that logs a greeting message",
+      "author": "Lam Ngoc Khuong",
+      "category": "general",
+      "filename": "hello-world.user.js",
+      "matches": [
+        "https://*/*"
+      ],
+      "installUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/general/hello-world.user.js",
+      "sourceUrl": "https://github.com/lamngockhuong/userjs/blob/main/scripts/general/hello-world.user.js"
+    },
+    {
+      "name": "Change Translate Attribute",
+      "version": "0.3",
+      "description": "Change translate=\"no\" to translate=\"yes\"",
+      "author": "Lam Ngoc Khuong",
+      "category": "general",
+      "filename": "change-translate-attribute.user.js",
+      "matches": [
+        "*://*/*"
+      ],
+      "installUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/general/change-translate-attribute.user.js",
+      "sourceUrl": "https://github.com/lamngockhuong/userjs/blob/main/scripts/general/change-translate-attribute.user.js",
+      "readmeUrl": "https://raw.githubusercontent.com/lamngockhuong/userjs/main/scripts/general/change-translate-attribute.md"
     }
   ],
   "bookmarks": [
