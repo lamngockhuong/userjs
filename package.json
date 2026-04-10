@@ -36,7 +36,7 @@
     "@biomejs/biome": "2.4.6",
     "@playwright/test": "1.58.2",
     "@tailwindcss/vite": "4.2.1",
-    "@types/node": "25.4.0",
+    "@types/node": "25.6.0",
     "@vitejs/plugin-vue": "6.0.4",
     "glob": "13.0.6",
     "playwright": "1.58.2",
